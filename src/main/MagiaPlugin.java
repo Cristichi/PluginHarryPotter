@@ -1,7 +1,9 @@
 package main;
 
+import java.io.File;
+import java.nio.file.FileSystemException;
+
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,13 +12,17 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import obj.Varita;
+import obj.Varita.Conjuro;
 import obj.Varita.Flexibilidad;
+import obj.Varita.Longitud;
 import obj.Varita.Madera;
 import obj.Varita.Nucleo;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
 	private PluginDescriptionFile desc = getDescription();
 
+	private File archivoNumeros = new File("plugins/"+desc.getName()+"/Números Mágicos.yml");
+	
 	private final ChatColor mainColor = ChatColor.BLUE;
 	private final ChatColor textColor = ChatColor.AQUA;
 	private final ChatColor accentColor = ChatColor.DARK_AQUA;
@@ -25,9 +31,21 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
+		Varita.Init(this);
+		try {
+			Varita.cargarNumeros(archivoNumeros);
+		} catch (FileSystemException e) {
+			e.printStackTrace();
+		}
 		getServer().getPluginManager().registerEvents(new Varita.VaritaListener(), this);
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
+	}
+	
+	@Override
+	public void onDisable() {
+		Varita.guardarNumeros(archivoNumeros);
+		getLogger().info("Disabled");
 	}
 
 	@Override
@@ -44,10 +62,22 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "dame":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				Varita varita = new Varita(this, Nucleo.PLUMA_DE_FENIX, Madera.ABEDUL, Flexibilidad.MUY_FLEXIBLE);
-				varita.setType(Material.DIAMOND_BLOCK);
-				p.getInventory().addItem(varita);
+				p.getInventory().addItem(new Varita(Nucleo.PLUMA_DE_FENIX, Madera.ABEDUL, Flexibilidad.MUY_FLEXIBLE, Longitud.MUY_LARGA, Conjuro.AVADA_KEDAVRA));
+				p.getInventory().addItem(new Varita());
+//				p.getInventory().addItem(new Varita(new Random(115)));
 				p.sendMessage("Palito :D");
+			}
+			break;
+		case "esvarita":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
+				if (varita==null) {
+					p.sendMessage(header+"No es una varita: "+p.getInventory().getItemInMainHand());
+				}else {
+					p.sendMessage(header+"Es una varita con:");
+					p.sendMessage(header+"Número: "+varita.getNumeroMagico());
+				}
 			}
 			break;
 
