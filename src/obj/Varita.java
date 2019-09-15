@@ -1,5 +1,6 @@
 package obj;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,7 +17,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -56,7 +56,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
 
-	private static Plugin plugin;
+	static Plugin plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -423,44 +423,42 @@ public class Varita extends ItemStack {
 			return nombre;
 		}
 	}
-
+	
 	public static enum Conjuro {
-		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 5){
+		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 1200) {
 			@Override
-			public void Accion(Entity victima) {
+			protected void Accion(Player atacante, Entity victima) {
 				if (victima instanceof LivingEntity) {
 					LivingEntity victimaViva = (LivingEntity) victima;
 					if (!victimaViva.isDead()) {
 						victimaViva.playEffect(EntityEffect.HURT_DROWN);
 						victimaViva.getWorld().strikeLightningEffect(victimaViva.getLocation());
-						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
-								0.1F);
-						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1,
-								0.1F);
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1, 0.1F);
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1, 0.1F);
 						victimaViva.setHealth(0);
 					}
 				}
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 5){
+		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 100) {
 			@Override
-			public void Accion(Entity victima) {
+			protected void Accion(Player atacante, Entity victima) {
 				if (victima instanceof HumanEntity) {
 					Random rng = new Random();
-					HumanEntity victimaHumana = (HumanEntity)victima ;
+					HumanEntity victimaHumana = (HumanEntity) victima;
 					ItemStack mano = victimaHumana.getInventory().getItemInMainHand();
-					Item dropeado = victimaHumana.getWorld()
-							.dropItemNaturally(victimaHumana.getEyeLocation().add(
-									rng.nextDouble() * (rng.nextBoolean() ? -3 : 3), 1,
-									rng.nextDouble() * (rng.nextBoolean() ? -3 : 3)), mano);
+					Item dropeado = victimaHumana.getWorld().dropItemNaturally(
+							victimaHumana.getEyeLocation().add(rng.nextDouble() * (rng.nextBoolean() ? -3 : 3), 1,
+									rng.nextDouble() * (rng.nextBoolean() ? -3 : 3)),
+							mano);
 					dropeado.setGlowing(true);
 					victimaHumana.getInventory().setItemInMainHand(null);
 				}
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 2){
+		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 0) {
 			@Override
-			public void Accion(Entity victima) {
+			protected void Accion(Player atacante, Entity victima) {
 				if (victima instanceof LivingEntity) {
 					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 10, 1), true);
 				}
@@ -470,11 +468,12 @@ public class Varita extends ItemStack {
 		private Material ingrediente;
 		private ChatColor chatColor;
 		private Color color;
-		private int cooldownSegundos;
+		private int cooldownTicks;
 		private String metaFlechaNombre;
 		private FixedMetadataValue metaFlecha;
+		private HashMap<UUID, Integer> cds = new HashMap<>();
 
-		private Conjuro(Material ingrediente, ChatColor chatColor, Color color, int cooldownSegundos) {
+		private Conjuro(Material ingrediente, ChatColor chatColor, Color color, int cooldownTicks) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
 			boolean nextMayus = true;
@@ -490,17 +489,17 @@ public class Varita extends ItemStack {
 			nombre = new String(cs);
 			this.chatColor = chatColor;
 			this.color = color;
-			this.cooldownSegundos = cooldownSegundos;
+			this.cooldownTicks = cooldownTicks;
 			this.ingrediente = ingrediente;
 			metaFlechaNombre = name();
-			metaFlecha = new FixedMetadataValue(plugin, new FixedMetadataValue(plugin, true));
+			metaFlecha = new FixedMetadataValue(Varita.plugin, new FixedMetadataValue(Varita.plugin, true));
 		}
 
-		private Conjuro(String nombre, ChatColor chatColor, Color color, int cooldownSegundos) {
+		private Conjuro(String nombre, ChatColor chatColor, Color color, int cooldownTicks) {
 			this.nombre = nombre;
 			this.chatColor = chatColor;
 			this.color = color;
-			this.cooldownSegundos = cooldownSegundos;
+			this.cooldownTicks = cooldownTicks;
 		}
 
 		public String getNombre() {
@@ -515,8 +514,8 @@ public class Varita extends ItemStack {
 			return color;
 		}
 
-		public int getCooldownSegundos() {
-			return cooldownSegundos;
+		public int getCooldownTicks() {
+			return cooldownTicks;
 		}
 
 		public Material getIngrediente() {
@@ -530,8 +529,25 @@ public class Varita extends ItemStack {
 		public FixedMetadataValue getMetaFlecha() {
 			return metaFlecha;
 		}
-		
-		public void Accion(Entity victima) {
+
+		protected void Accion(Player atacante, Entity victima) {
+		}
+
+		public void Accionar(Player player, Entity victima) {
+			int ticks = player.getTicksLived();
+			boolean ok = true;
+			if (cds.containsKey(player.getUniqueId())) {
+				int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
+				if (ticksObj > ticks) {
+					ok = false;
+					player.sendMessage("Debes esperar "+(int)((ticksObj-ticks)*20)+" segundos para volver a lanzar "+toString());
+				}
+			}
+
+			if (ok) {
+				Accion(player, victima);
+				cds.put(player.getUniqueId(), ticks);
+			}
 		}
 
 		@Override
@@ -594,7 +610,7 @@ public class Varita extends ItemStack {
 							}
 						}
 					}
-					if (p.getItemOnCursor()!=null) {
+					if (p.getItemOnCursor() != null) {
 						if (pi.firstEmpty() < 0)
 							p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
 						else {
@@ -620,7 +636,7 @@ public class Varita extends ItemStack {
 						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
 					}
 					if (varita.conjuro != null) {
-						varita.conjuro.Accion(e.getRightClicked());
+						varita.conjuro.Accionar(e.getPlayer(), e.getRightClicked());
 					}
 				}
 			}
@@ -645,9 +661,9 @@ public class Varita extends ItemStack {
 						}
 						rayo.setGravity(false);
 						rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
+						rayo.setMetadata("jugadorAtacante", new FixedMetadataValue(plugin, p.getUniqueId()));
 						rayo.setMetadata(varita.conjuro.getMetaNombre(), varita.conjuro.getMetaFlecha());
 						Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-							
 							@Override
 							public void run() {
 								rayo.remove();
@@ -665,9 +681,10 @@ public class Varita extends ItemStack {
 			if (atacante instanceof Arrow) {
 				for (Conjuro c : Conjuro.values()) {
 					if (atacante.hasMetadata(c.getMetaNombre())) {
+						Player p = Bukkit.getPlayer(UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString()));
 						e.setCancelled(true);
 						atacante.remove();
-						c.Accion(atacado);
+						c.Accionar(p, atacado);
 						break;
 					}
 				}
