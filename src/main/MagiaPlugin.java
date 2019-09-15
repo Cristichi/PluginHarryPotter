@@ -18,11 +18,11 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	private File archivoNumeros = new File("plugins/"+desc.getName()+"/Números Mágicos.yml");
 	
-	private final ChatColor mainColor = ChatColor.BLUE;
-	private final ChatColor textColor = ChatColor.AQUA;
-	private final ChatColor accentColor = ChatColor.DARK_AQUA;
-//	private final ChatColor errorColor = ChatColor.DARK_RED;
-	private final String header = mainColor + "[" + desc.getName() + "] " + textColor;
+	public final ChatColor mainColor = ChatColor.BLUE;
+	public final ChatColor textColor = ChatColor.AQUA;
+	public final ChatColor accentColor = ChatColor.DARK_AQUA;
+//	public final ChatColor errorColor = ChatColor.DARK_RED;
+	public final String header = mainColor + "[" + desc.getName() + "] " + textColor;
 
 	@Override
 	public void onEnable() {

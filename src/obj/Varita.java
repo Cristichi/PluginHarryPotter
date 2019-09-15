@@ -51,12 +51,13 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.sun.istack.internal.Nullable;
 
+import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
 
-	static Plugin plugin;
+	static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -64,7 +65,7 @@ public class Varita extends ItemStack {
 	private static NamespacedKey keyLongitud;
 	private static NamespacedKey keyConjuro;
 
-	public static void Init(Plugin plugin) {
+	public static void Init(MagiaPlugin plugin) {
 		Varita.plugin = plugin;
 		keyNumeroMagico = new NamespacedKey(plugin, "varitaNumeroMagico");
 		keyNucleo = new NamespacedKey(plugin, "varitaNucleo");
@@ -423,26 +424,29 @@ public class Varita extends ItemStack {
 			return nombre;
 		}
 	}
-	
+
 	public static enum Conjuro {
 		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 1200) {
 			@Override
-			protected void Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima) {
 				if (victima instanceof LivingEntity) {
 					LivingEntity victimaViva = (LivingEntity) victima;
 					if (!victimaViva.isDead()) {
 						victimaViva.playEffect(EntityEffect.HURT_DROWN);
 						victimaViva.getWorld().strikeLightningEffect(victimaViva.getLocation());
-						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1, 0.1F);
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
+								0.1F);
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1, 0.1F);
 						victimaViva.setHealth(0);
+						return true;
 					}
 				}
+				return false;
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 100) {
+		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 300) {
 			@Override
-			protected void Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima) {
 				if (victima instanceof HumanEntity) {
 					Random rng = new Random();
 					HumanEntity victimaHumana = (HumanEntity) victima;
@@ -453,15 +457,20 @@ public class Varita extends ItemStack {
 							mano);
 					dropeado.setGlowing(true);
 					victimaHumana.getInventory().setItemInMainHand(null);
+					return true;
 				}
+				return false;
 			}
 		},
 		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 0) {
 			@Override
-			protected void Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima) {
 				if (victima instanceof LivingEntity) {
-					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 10, 1), true);
+					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 10, 1),
+							true);
+					return true;
 				}
+				return false;
 			}
 		};
 		private String nombre;
@@ -530,23 +539,27 @@ public class Varita extends ItemStack {
 			return metaFlecha;
 		}
 
-		protected void Accion(Player atacante, Entity victima) {
+		protected boolean Accion(Player atacante, Entity victima) {
+			return false;
 		}
 
 		public void Accionar(Player player, Entity victima) {
-			int ticks = player.getTicksLived();
 			boolean ok = true;
-			if (cds.containsKey(player.getUniqueId())) {
-				int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
-				if (ticksObj > ticks) {
-					ok = false;
-					player.sendMessage("Debes esperar "+(int)((ticksObj-ticks)*20)+" segundos para volver a lanzar "+toString());
+			int ticks = player.getTicksLived();
+			if (cooldownTicks > 0) {
+				if (cds.containsKey(player.getUniqueId())) {
+					int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
+					if (ticksObj > ticks) {
+						ok = false;
+						player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor
+								+ (int) ((ticksObj - ticks) / 20) + plugin.textColor + " segundos para volver a lanzar "
+								+ chatColor + toString() + plugin.textColor + ".");
+					}
 				}
 			}
-
 			if (ok) {
-				Accion(player, victima);
-				cds.put(player.getUniqueId(), ticks);
+				if (Accion(player, victima))
+					cds.put(player.getUniqueId(), ticks);
 			}
 		}
 
@@ -681,7 +694,8 @@ public class Varita extends ItemStack {
 			if (atacante instanceof Arrow) {
 				for (Conjuro c : Conjuro.values()) {
 					if (atacante.hasMetadata(c.getMetaNombre())) {
-						Player p = Bukkit.getPlayer(UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString()));
+						Player p = Bukkit
+								.getPlayer(UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString()));
 						e.setCancelled(true);
 						atacante.remove();
 						c.Accionar(p, atacado);
