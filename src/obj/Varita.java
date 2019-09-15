@@ -16,28 +16,42 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import com.sun.istack.internal.Nullable;
+
+import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
@@ -199,7 +213,9 @@ public class Varita extends ItemStack {
 		im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString());
 		ArrayList<String> arrayList = new ArrayList<>();
 		if (conjuro != null) {
-			arrayList.add(ChatColor.GRAY + "Conjuro: " + conjuro.getColor() + conjuro.toString());
+			im.setDisplayName(ChatColor.RESET + "" + conjuro.getChatColor() + "Varita" + ChatColor.RESET + " de "
+					+ madera.toString());
+			arrayList.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
 		}
 		arrayList.add(ChatColor.GRAY + "Núcleo: " + nucleo.toString());
 		arrayList.add(ChatColor.GRAY + "Madera: " + madera.toString());
@@ -409,13 +425,56 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Conjuro {
-		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, 5);
+		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 5){
+			@Override
+			public void Accion(Entity victima) {
+				if (victima instanceof LivingEntity) {
+					LivingEntity victimaViva = (LivingEntity) victima;
+					if (!victimaViva.isDead()) {
+						victimaViva.playEffect(EntityEffect.HURT_DROWN);
+						victimaViva.getWorld().strikeLightningEffect(victimaViva.getLocation());
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
+								0.1F);
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1,
+								0.1F);
+						victimaViva.setHealth(0);
+					}
+				}
+			}
+		},
+		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 5){
+			@Override
+			public void Accion(Entity victima) {
+				if (victima instanceof HumanEntity) {
+					Random rng = new Random();
+					HumanEntity victimaHumana = (HumanEntity)victima ;
+					ItemStack mano = victimaHumana.getInventory().getItemInMainHand();
+					Item dropeado = victimaHumana.getWorld()
+							.dropItemNaturally(victimaHumana.getEyeLocation().add(
+									rng.nextDouble() * (rng.nextBoolean() ? -3 : 3), 1,
+									rng.nextDouble() * (rng.nextBoolean() ? -3 : 3)), mano);
+					dropeado.setGlowing(true);
+					victimaHumana.getInventory().setItemInMainHand(null);
+				}
+			}
+		},
+		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 2){
+			@Override
+			public void Accion(Entity victima) {
+				if (victima instanceof LivingEntity) {
+					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 10, 1), true);
+				}
+			}
+		};
 		private String nombre;
 		private Material ingrediente;
-		private ChatColor color;
+		private ChatColor chatColor;
+		private Color color;
 		private int cooldownSegundos;
+		private String metaFlechaNombre;
+		private FixedMetadataValue metaFlecha;
 
-		private Conjuro(Material ingrediente, ChatColor color, int cooldownSegundos) {
+		private Conjuro(Material ingrediente, ChatColor chatColor, Color color, int cooldownSegundos) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
 			boolean nextMayus = true;
@@ -429,13 +488,17 @@ public class Varita extends ItemStack {
 				}
 			}
 			nombre = new String(cs);
+			this.chatColor = chatColor;
 			this.color = color;
 			this.cooldownSegundos = cooldownSegundos;
 			this.ingrediente = ingrediente;
+			metaFlechaNombre = name();
+			metaFlecha = new FixedMetadataValue(plugin, new FixedMetadataValue(plugin, true));
 		}
 
-		private Conjuro(String nombre, ChatColor color, int cooldownSegundos) {
+		private Conjuro(String nombre, ChatColor chatColor, Color color, int cooldownSegundos) {
 			this.nombre = nombre;
+			this.chatColor = chatColor;
 			this.color = color;
 			this.cooldownSegundos = cooldownSegundos;
 		}
@@ -444,7 +507,11 @@ public class Varita extends ItemStack {
 			return nombre;
 		}
 
-		public ChatColor getColor() {
+		public ChatColor getChatColor() {
+			return chatColor;
+		}
+
+		public Color getColor() {
 			return color;
 		}
 
@@ -456,6 +523,17 @@ public class Varita extends ItemStack {
 			return ingrediente;
 		}
 
+		public String getMetaNombre() {
+			return metaFlechaNombre;
+		}
+
+		public FixedMetadataValue getMetaFlecha() {
+			return metaFlecha;
+		}
+		
+		public void Accion(Entity victima) {
+		}
+
 		@Override
 		public String toString() {
 			return nombre;
@@ -465,7 +543,7 @@ public class Varita extends ItemStack {
 	public static class VaritaListener implements Listener {
 
 		@EventHandler
-		public void onPrepararCrafteo(PrepareItemCraftEvent e) {
+		private void onPrepararCrafteo(PrepareItemCraftEvent e) {
 			ItemStack[] items = e.getInventory().getMatrix();
 			ArrayList<ItemStack> arrayList = new ArrayList<>(items.length);
 			for (int i = 0; i < items.length; i++) {
@@ -495,31 +573,35 @@ public class Varita extends ItemStack {
 		}
 
 		@EventHandler
-		public void onCrafteo(InventoryClickEvent e) {
+		private void onCrafteo(InventoryClickEvent e) {
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
 				Varita varita = Varita.convertir(plugin, is);
-				if (varita!=null) {
+				if (varita != null) {
 					e.setCancelled(true);
 					HumanEntity p = e.getView().getPlayer();
 					PlayerInventory pi = p.getInventory();
 					ItemStack[] matriz = inv.getMatrix();
 					for (ItemStack itemStack : matriz) {
-						if (itemStack!=null) {
-							itemStack.setAmount(itemStack.getAmount()-1);
-							if (itemStack.getAmount()>0) {
-								if (pi.firstEmpty()<0)
+						if (itemStack != null) {
+							itemStack.setAmount(itemStack.getAmount() - 1);
+							if (itemStack.getAmount() > 0) {
+								if (pi.firstEmpty() < 0)
 									p.getWorld().dropItem(p.getLocation(), itemStack);
 								else
 									pi.addItem(itemStack);
 							}
 						}
 					}
-					if (pi.firstEmpty()<0)
-						p.getWorld().dropItem(p.getLocation(), varita);
-					else
-						pi.addItem(varita);
+					if (p.getItemOnCursor()!=null) {
+						if (pi.firstEmpty() < 0)
+							p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
+						else {
+							pi.addItem(p.getItemOnCursor());
+						}
+					}
+					p.setItemOnCursor(varita);
 					inv.clear();
 				}
 			}
@@ -538,54 +620,74 @@ public class Varita extends ItemStack {
 						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
 					}
 					if (varita.conjuro != null) {
-						switch (varita.conjuro) {
-						case AVADA_KEDAVRA:
-							if (e.getRightClicked() instanceof LivingEntity) {
-								LivingEntity victima = (LivingEntity) e.getRightClicked();
-								if (!victima.isDead()) {
-									victima.playEffect(EntityEffect.HURT_DROWN);
-									victima.getWorld().strikeLightningEffect(victima.getLocation());
-									victima.getWorld().playSound(victima.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
-											0.1F);
-									victima.getWorld().playSound(victima.getLocation(), Sound.ENCHANT_THORNS_HIT, 1,
-											0.1F);
-									victima.setHealth(0);
-								}
-							}
-							break;
-
-						default:
-							e.getPlayer().sendMessage(varita.conjuro.getColor() + varita.conjuro.toString());
-							break;
-						}
+						varita.conjuro.Accion(e.getRightClicked());
 					}
 				}
 			}
 		}
 
-//		@EventHandler
-//		private void onInteract(PlayerInteractEvent e) {
-//			if (e.getItem() != null) {
-//				Varita varita = Varita.convertir(plugin, e.getItem());
-//				if (varita != null) {
-//					Player p = e.getPlayer();
-//					Float numeroMagicoP = numerosMagicos.get(p.getUniqueId());
-//					if (numeroMagicoP == null) {
-//						numeroMagicoP = new Random().nextFloat();
-//						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
-//					}
-//					if (varita.conjuro != null) {
-//						switch (varita.conjuro) {
-//						case AVADA_KEDAVRA:
-//							break;
-//
-//						default:
-//							e.getPlayer().sendMessage(varita.conjuro.getColor() + varita.conjuro.toString());
-//							break;
-//						}
-//					}
-//				}
-//			}
-//		}
+		@EventHandler
+		private void onInteract(PlayerInteractEvent e) {
+			if (e.getItem() != null) {
+				Varita varita = Varita.convertir(plugin, e.getItem());
+				if (varita != null) {
+					Player p = e.getPlayer();
+					Float numeroMagicoP = numerosMagicos.get(p.getUniqueId());
+					if (numeroMagicoP == null) {
+						numeroMagicoP = new Random().nextFloat();
+						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
+					}
+					if (varita.conjuro != null) {
+						Arrow rayo = p.launchProjectile(Arrow.class);
+						PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(rayo.getEntityId());
+						for (Player pl : Bukkit.getOnlinePlayers()) {
+							((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+						}
+						rayo.setGravity(false);
+						rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
+						rayo.setMetadata(varita.conjuro.getMetaNombre(), varita.conjuro.getMetaFlecha());
+						Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+							
+							@Override
+							public void run() {
+								rayo.remove();
+							}
+						}, 2);
+					}
+				}
+			}
+		}
+
+		@EventHandler
+		private void onHitEntity(EntityDamageByEntityEvent e) {
+			Entity atacado = e.getEntity();
+			Entity atacante = e.getDamager();
+			if (atacante instanceof Arrow) {
+				for (Conjuro c : Conjuro.values()) {
+					if (atacante.hasMetadata(c.getMetaNombre())) {
+						e.setCancelled(true);
+						atacante.remove();
+						c.Accion(atacado);
+						break;
+					}
+				}
+			}
+		}
+
+		@EventHandler
+		private static void onHit(ProjectileHitEvent e) {
+			Projectile proyectil = e.getEntity();
+			if (proyectil instanceof Arrow) {
+				for (Conjuro c : Conjuro.values()) {
+					if (proyectil.hasMetadata(c.getMetaNombre())) {
+						for (Player pl : Bukkit.getOnlinePlayers()) {
+							pl.stopSound(Sound.ENTITY_ARROW_HIT);
+						}
+						proyectil.remove();
+						break;
+					}
+				}
+			}
+		}
 	}
 }

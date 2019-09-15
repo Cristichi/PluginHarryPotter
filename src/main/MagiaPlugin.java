@@ -12,11 +12,6 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import obj.Varita;
-import obj.Varita.Conjuro;
-import obj.Varita.Flexibilidad;
-import obj.Varita.Longitud;
-import obj.Varita.Madera;
-import obj.Varita.Nucleo;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
 	private PluginDescriptionFile desc = getDescription();
@@ -62,10 +57,10 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "dame":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				p.getInventory().addItem(new Varita(Nucleo.PLUMA_DE_FENIX, Madera.ABEDUL, Flexibilidad.MUY_FLEXIBLE, Longitud.MUY_LARGA, Conjuro.AVADA_KEDAVRA));
+//				p.getInventory().addItem(new Varita(Nucleo.PLUMA_DE_FENIX, Madera.ABEDUL, Flexibilidad.MUY_FLEXIBLE, Longitud.MUY_LARGA, Conjuro.AVADA_KEDAVRA));
 				p.getInventory().addItem(new Varita());
 //				p.getInventory().addItem(new Varita(new Random(115)));
-				p.sendMessage("Palito :D");
+				p.sendMessage("<Ollivanders> De nada, feo");
 			}
 			break;
 		case "esvarita":
