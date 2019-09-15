@@ -467,7 +467,7 @@ public class Varita extends ItemStack {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
-					int ticks = (int) (7 * potencia) + 2;
+					int ticks = (int) (8 * potencia) + 1;
 					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1),
 							true);
 					return true;
@@ -483,6 +483,8 @@ public class Varita extends ItemStack {
 		private String metaFlechaNombre;
 		private FixedMetadataValue metaFlecha;
 		private HashMap<UUID, Integer> cds = new HashMap<>();
+		private HashMap<UUID, Integer> mensajes = new HashMap<>();
+		private static int cdMensaje = 20;
 
 		private Conjuro(Material ingrediente, ChatColor chatColor, Color color, int cooldownTicks) {
 			nombre = name().toLowerCase().replace("_", " ");
@@ -553,9 +555,14 @@ public class Varita extends ItemStack {
 					int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
 					if (ticksObj > ticks) {
 						ok = false;
-						player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor
-								+ (int) ((ticksObj - ticks) / 20) + plugin.textColor + " segundos para volver a lanzar "
-								+ chatColor + toString() + plugin.textColor + ".");
+						int espera = (int) ((ticksObj - ticks) / 20);
+						if (!mensajes.containsKey(player.getUniqueId())
+								|| mensajes.get(player.getUniqueId()) + cdMensaje <= ticks) {
+							player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
+									+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
+									+ plugin.textColor + ".");
+							mensajes.put(player.getUniqueId(), ticks);
+						}
 					}
 				}
 			}
@@ -676,7 +683,7 @@ public class Varita extends ItemStack {
 							((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
 						}
 						rayo.setGravity(false);
-						rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
+						rayo.setVelocity(rayo.getVelocity().normalize().multiply(12));
 						rayo.setMetadata("jugadorAtacante", new FixedMetadataValue(plugin, p.getUniqueId()));
 						rayo.setMetadata("numeroMagicoVarita",
 								new FixedMetadataValue(plugin, varita.getNumeroMagico()));
