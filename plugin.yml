@@ -1,0 +1,18 @@
+name: MagiaBorras
+main: main.MagiaPlugin
+version: 0.115
+api-version: 1.13
+commands:
+  magia:
+    description: Controla el plugin.
+    aliases: [cm, cristichimagia]
+    usage: /magia help
+permissions:
+  cristichimagia.*:
+    children:
+      cristichimagia.use: true
+      cristichimagia.admin: true
+  cristichimagia.use:
+    default: true
+  cristichimagia.admin:
+    default: op
