@@ -437,7 +437,8 @@ public class Varita extends ItemStack {
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
 								0.1F);
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1, 0.1F);
-						victimaViva.setHealth(0);
+						double vida = victimaViva.getHealth() * (0.8 - potencia);
+						victimaViva.setHealth(vida > 0 ? vida : 0);
 						return true;
 					}
 				}
@@ -466,7 +467,7 @@ public class Varita extends ItemStack {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
-					int ticks = (int) (9 * potencia);
+					int ticks = (int) (7 * potencia) + 2;
 					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1),
 							true);
 					return true;
