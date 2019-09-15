@@ -55,7 +55,7 @@ import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
-	private static HashMap<UUID, Float> numerosMagicos;
+	public static HashMap<UUID, Float> numerosMagicos;
 
 	static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
@@ -428,7 +428,7 @@ public class Varita extends ItemStack {
 	public static enum Conjuro {
 		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 1200) {
 			@Override
-			protected boolean Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
 					LivingEntity victimaViva = (LivingEntity) victima;
 					if (!victimaViva.isDead()) {
@@ -446,7 +446,7 @@ public class Varita extends ItemStack {
 		},
 		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 300) {
 			@Override
-			protected boolean Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof HumanEntity) {
 					Random rng = new Random();
 					HumanEntity victimaHumana = (HumanEntity) victima;
@@ -464,9 +464,10 @@ public class Varita extends ItemStack {
 		},
 		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 0) {
 			@Override
-			protected boolean Accion(Player atacante, Entity victima) {
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
-					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 10, 1),
+					int ticks = (int) (9 * potencia);
+					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1),
 							true);
 					return true;
 				}
@@ -539,11 +540,11 @@ public class Varita extends ItemStack {
 			return metaFlecha;
 		}
 
-		protected boolean Accion(Player atacante, Entity victima) {
+		protected boolean Accion(Player atacante, Entity victima, float potencia) {
 			return false;
 		}
 
-		public void Accionar(Player player, Entity victima) {
+		public void Accionar(Player player, Entity victima, float numeroMagicoVarita, float numeroMagicoPlayer) {
 			boolean ok = true;
 			int ticks = player.getTicksLived();
 			if (cooldownTicks > 0) {
@@ -558,7 +559,7 @@ public class Varita extends ItemStack {
 				}
 			}
 			if (ok) {
-				if (Accion(player, victima))
+				if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita)))
 					cds.put(player.getUniqueId(), ticks);
 			}
 		}
@@ -643,13 +644,14 @@ public class Varita extends ItemStack {
 			if (item != null) {
 				Varita varita = Varita.convertir(plugin, item);
 				if (varita != null) {
-					Float numeroMagicoP = numerosMagicos.get(p.getUniqueId());
-					if (numeroMagicoP == null) {
-						numeroMagicoP = new Random().nextFloat();
-						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
+					Float numeroMagicoPlayer = numerosMagicos.get(p.getUniqueId());
+					if (numeroMagicoPlayer == null) {
+						numeroMagicoPlayer = new Random().nextFloat();
+						numerosMagicos.put(p.getUniqueId(), numeroMagicoPlayer);
 					}
 					if (varita.conjuro != null) {
-						varita.conjuro.Accionar(e.getPlayer(), e.getRightClicked());
+						varita.conjuro.Accionar(e.getPlayer(), e.getRightClicked(), varita.getNumeroMagico(),
+								numeroMagicoPlayer);
 					}
 				}
 			}
@@ -675,6 +677,8 @@ public class Varita extends ItemStack {
 						rayo.setGravity(false);
 						rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
 						rayo.setMetadata("jugadorAtacante", new FixedMetadataValue(plugin, p.getUniqueId()));
+						rayo.setMetadata("numeroMagicoVarita",
+								new FixedMetadataValue(plugin, varita.getNumeroMagico()));
 						rayo.setMetadata(varita.conjuro.getMetaNombre(), varita.conjuro.getMetaFlecha());
 						Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 							@Override
@@ -694,11 +698,17 @@ public class Varita extends ItemStack {
 			if (atacante instanceof Arrow) {
 				for (Conjuro c : Conjuro.values()) {
 					if (atacante.hasMetadata(c.getMetaNombre())) {
-						Player p = Bukkit
-								.getPlayer(UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString()));
+						UUID jug = UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString());
+						Player p = Bukkit.getPlayer(jug);
+						Float numeroMagicoPlayer = numerosMagicos.get(p.getUniqueId());
+						if (numeroMagicoPlayer == null) {
+							numeroMagicoPlayer = new Random().nextFloat();
+							numerosMagicos.put(p.getUniqueId(), numeroMagicoPlayer);
+						}
 						e.setCancelled(true);
 						atacante.remove();
-						c.Accionar(p, atacado);
+						c.Accionar(p, atacado, atacante.getMetadata("numeroMagicoVarita").get(0).asFloat(),
+								numeroMagicoPlayer);
 						break;
 					}
 				}

@@ -63,15 +63,15 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				p.sendMessage("<Ollivanders> De nada, feo");
 			}
 			break;
-		case "esvarita":
+		case "test":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
 				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
 				if (varita==null) {
 					p.sendMessage(header+"No es una varita: "+p.getInventory().getItemInMainHand());
 				}else {
-					p.sendMessage(header+"Es una varita con:");
-					p.sendMessage(header+"Número: "+varita.getNumeroMagico());
+					p.sendMessage(header+"Es una varita de número: "+varita.getNumeroMagico());
+					p.sendMessage(header+"Y tu número es: "+Varita.numerosMagicos.getOrDefault(p.getUniqueId(), -1F));
 				}
 			}
 			break;
