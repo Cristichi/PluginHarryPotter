@@ -10,11 +10,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.java.JavaPlugin;
 
+import obj.PluginMagico;
 import obj.Varita;
 
-public class MagiaPlugin extends JavaPlugin implements Listener {
+public class MagiaPlugin extends PluginMagico implements Listener {
 	public final Permission USE = new Permission("magiaborras.use");
 	public final Permission CREATE = new Permission("magiaborras.create");
 	public final Permission NO_CD = new Permission("magiaborras.nocd");

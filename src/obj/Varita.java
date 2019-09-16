@@ -25,6 +25,7 @@ import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -56,13 +57,12 @@ import org.bukkit.util.Vector;
 
 import com.sun.istack.internal.Nullable;
 
-import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
 
-	private static MagiaPlugin plugin;
+	private static PluginMagico plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -70,7 +70,7 @@ public class Varita extends ItemStack {
 	private static NamespacedKey keyLongitud;
 	private static NamespacedKey keyConjuro;
 
-	public static void Init(MagiaPlugin plugin) {
+	public static void Init(PluginMagico plugin) {
 		Varita.plugin = plugin;
 		keyNumeroMagico = new NamespacedKey(plugin, "varitaNumeroMagico");
 		keyNucleo = new NamespacedKey(plugin, "varitaNucleo");
@@ -577,7 +577,7 @@ public class Varita extends ItemStack {
 				int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					@Override
 					public void run() {
-						if (atacante.getLocation().distance(victima.getLocation())>2) {
+						if (atacante.getLocation().distance(victima.getLocation()) > 2) {
 							Vector pos = victima.getLocation().toVector();
 							Vector target = atacante.getLocation().toVector();
 							Vector velocity = target.subtract(pos);
@@ -588,7 +588,7 @@ public class Varita extends ItemStack {
 				int idDist2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					@Override
 					public void run() {
-						if (atacante.getLocation().distance(victima.getLocation())<2) {
+						if (atacante.getLocation().distance(victima.getLocation()) < 2) {
 							victima.setGravity(gravitada);
 							Bukkit.getScheduler().cancelTask(idDist1);
 						}
@@ -626,8 +626,11 @@ public class Varita extends ItemStack {
 		}
 
 		/**
-		 * Para las palabras mágicas puede usted usar: {nombre} {chatcolor} {atacante}
-		 * {enemigo}
+		 * Para las palabras mágicas se puede usar:<br>
+		 * {nombre} Para el nombre del Conjuro<br>
+		 * {chatcolor} Para el color del Conjuro<br>
+		 * {atacante} Para el nombre del mago atacante<br>
+		 * {enemigo} Para el nombre de la víctima del Conjuro
 		 * 
 		 * @param ingrediente
 		 * @param chatColor
@@ -698,7 +701,7 @@ public class Varita extends ItemStack {
 		public FixedMetadataValue getMetaFlecha() {
 			return metaFlecha;
 		}
-		
+
 		protected void resetTiempoPalabras(Player p) {
 			mensajesPalabrasMagicas.remove(p.getUniqueId());
 		}
