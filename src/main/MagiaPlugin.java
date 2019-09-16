@@ -15,9 +15,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import obj.Varita;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
-	public final static Permission USE = new Permission("magiaborras.use");
-	public final static Permission NO_CD = new Permission("magiaborras.nocd");
-	public final static Permission ADMIN = new Permission("magiaborras.admin");
+	public final Permission USE = new Permission("magiaborras.use");
+	public final Permission NO_CD = new Permission("magiaborras.nocd");
+	public final Permission ADMIN = new Permission("magiaborras.admin");
 	private PluginDescriptionFile desc = getDescription();
 
 	private File archivoNumeros = new File("plugins/"+desc.getName()+"/Números Mágicos.yml");
@@ -25,7 +25,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public final ChatColor mainColor = ChatColor.BLUE;
 	public final ChatColor textColor = ChatColor.AQUA;
 	public final ChatColor accentColor = ChatColor.DARK_AQUA;
-//	public final ChatColor errorColor = ChatColor.DARK_RED;
+	public final ChatColor errorColor = ChatColor.DARK_RED;
 	public final String header = mainColor + "[" + desc.getName() + "] " + textColor;
 
 	@Override

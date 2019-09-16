@@ -8,11 +8,14 @@ commands:
     aliases: [cm, cristichimagia]
     usage: /magia help
 permissions:
-  cristichimagia.*:
+  magiaborras.*:
     children:
-      cristichimagia.use: true
-      cristichimagia.admin: true
-  cristichimagia.use:
-    default: true
-  cristichimagia.admin:
+      magiaborras.use: true
+      magiaborras.nocd: false
+      magiaborras.admin: true
+  magiaborras.use:
+    default: false
+  magiaborras.nocd:
+    default: false
+  magiaborras.admin:
     default: op
