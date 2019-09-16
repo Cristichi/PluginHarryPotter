@@ -21,8 +21,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public final Permission ADMIN = new Permission("magiaborras.admin");
 	private PluginDescriptionFile desc = getDescription();
 
-	private File archivoNumeros = new File("plugins/"+desc.getName()+"/Números Mágicos.yml");
-	
+	private File archivoNumeros = new File("plugins/" + desc.getName() + "/Números Mágicos.yml");
+
 	public final ChatColor mainColor = ChatColor.BLUE;
 	public final ChatColor textColor = ChatColor.AQUA;
 	public final ChatColor accentColor = ChatColor.DARK_AQUA;
@@ -41,7 +41,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
 	}
-	
+
 	@Override
 	public void onDisable() {
 		Varita.guardarNumeros(archivoNumeros);
@@ -51,13 +51,13 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		label = label.toLowerCase();
-		if (args.length==0) {
+		if (args.length == 0) {
 			return false;
 		}
 		boolean bueno = true;
 		switch (args[0]) {
 		case "help":
-			sender.sendMessage(header+"Sin ayuda "+accentColor+":D");
+			sender.sendMessage(header + "Sin ayuda " + accentColor + ":D");
 			break;
 		case "dame":
 			if (sender instanceof Player) {
@@ -72,11 +72,12 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
 				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
-				if (varita==null) {
-					p.sendMessage(header+"No es una varita: "+p.getInventory().getItemInMainHand());
-				}else {
-					p.sendMessage(header+"Es una varita de número: "+varita.getNumeroMagico());
-					p.sendMessage(header+"Y tu número es: "+Varita.numerosMagicos.getOrDefault(p.getUniqueId(), -1F));
+				if (varita == null) {
+					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+				} else {
+					float numP = Varita.getOrGenerateNumero(p);
+					p.sendMessage(header + "Su varita y usted están compenetrados al "
+							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
 				}
 			}
 			break;
@@ -84,7 +85,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
 				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
-				if (varita!=null) {
+				if (varita != null) {
 					varita.recagarDatos();
 					p.getInventory().setItemInMainHand(varita);
 				}

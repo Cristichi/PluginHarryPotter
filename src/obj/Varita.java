@@ -52,6 +52,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import com.sun.istack.internal.Nullable;
 
@@ -59,9 +60,9 @@ import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
-	public static HashMap<UUID, Float> numerosMagicos;
+	private static HashMap<UUID, Float> numerosMagicos;
 
-	static MagiaPlugin plugin;
+	private static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -77,9 +78,9 @@ public class Varita extends ItemStack {
 		keyFlexibilidad = new NamespacedKey(plugin, "varitaFlexibilidad");
 		keyLongitud = new NamespacedKey(plugin, "varitaLongitud");
 		keyConjuro = new NamespacedKey(plugin, "varitaHechizo");
-		
+
 		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), new Varita(new Random(0)));
-		recipe.shape("FGS","BPB","ERE");
+		recipe.shape("FGS", "BPB", "ERE");
 		recipe.setIngredient('F', Material.FERMENTED_SPIDER_EYE);
 		recipe.setIngredient('G', Material.GHAST_TEAR);
 		recipe.setIngredient('S', Material.SPIDER_EYE);
@@ -92,6 +93,15 @@ public class Varita extends ItemStack {
 		Bukkit.addRecipe(recipe);
 
 		Varita.numerosMagicos = new HashMap<>();
+	}
+
+	public static float getOrGenerateNumero(Player player) {
+		Float numeroMagicoPlayer = numerosMagicos.get(player.getUniqueId());
+		if (numeroMagicoPlayer == null) {
+			numeroMagicoPlayer = new Random().nextFloat();
+			numerosMagicos.put(player.getUniqueId(), numeroMagicoPlayer);
+		}
+		return numeroMagicoPlayer;
 	}
 
 	public static void guardarNumeros(File archivo) {
@@ -280,7 +290,7 @@ public class Varita extends ItemStack {
 	public Longitud getLongitud() {
 		return longitud;
 	}
-	
+
 	public void cambiarConjuro(Conjuro conjuro) {
 		this.conjuro = conjuro;
 		recagarDatos();
@@ -460,6 +470,7 @@ public class Varita extends ItemStack {
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1, 0.1F);
 						double vida = victimaViva.getHealth() * (0.8 - potencia);
 						victimaViva.setHealth(vida > 0 ? vida : 0);
+						resetTiempoPalabras(atacante);
 						return true;
 					}
 				}
@@ -479,6 +490,7 @@ public class Varita extends ItemStack {
 							mano);
 					dropeado.setGlowing(true);
 					victimaHumana.getInventory().setItemInMainHand(null);
+					resetTiempoPalabras(atacante);
 					return true;
 				}
 				return false;
@@ -515,6 +527,7 @@ public class Varita extends ItemStack {
 							Bukkit.getScheduler().cancelTask(id);
 						}
 					}, ticks);
+					resetTiempoPalabras(atacante);
 					return true;
 				}
 				return false;
@@ -549,9 +562,53 @@ public class Varita extends ItemStack {
 							Bukkit.getScheduler().cancelTask(id);
 						}
 					}, delay / 2 + ticks);
+					resetTiempoPalabras(atacante);
 					return true;
 				}
 				return false;
+			}
+		},
+		ACCIO(Material.COMPASS, ChatColor.AQUA + "", Color.CYAN, 120,
+				ChatColor.RESET + "¡{chatcolor}{nombre} {enemigo}" + ChatColor.RESET + "!") {
+			@Override
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
+				boolean gravitada = victima.hasGravity();
+				victima.setGravity(false);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+					@Override
+					public void run() {
+						victima.setGravity(gravitada);
+					}
+				}, (long) (60 * potencia));
+				int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+					@Override
+					public void run() {
+						if (atacante.getLocation().distance(victima.getLocation())>2) {
+							Vector pos = victima.getLocation().toVector();
+							Vector target = atacante.getLocation().toVector();
+							Vector velocity = target.subtract(pos);
+							victima.setVelocity(velocity.normalize());
+						}
+					}
+				}, 0, 5);
+				int idDist2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+					@Override
+					public void run() {
+						if (atacante.getLocation().distance(victima.getLocation())<2) {
+							victima.setGravity(gravitada);
+							Bukkit.getScheduler().cancelTask(idDist1);
+						}
+					}
+				}, 0, 5);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+					@Override
+					public void run() {
+						Bukkit.getScheduler().cancelTask(idDist1);
+						Bukkit.getScheduler().cancelTask(idDist2);
+					}
+				}, (long) (60 * potencia));
+				resetTiempoPalabras(atacante);
+				return true;
 			}
 		};
 		private String nombre;
@@ -559,13 +616,32 @@ public class Varita extends ItemStack {
 		private String chatColor;
 		private Color color;
 		private int cooldownTicks;
+		private String palabras;
 		private String metaFlechaNombre;
 		private FixedMetadataValue metaFlecha;
 		private HashMap<UUID, Integer> cds = new HashMap<>();
 		private HashMap<UUID, Integer> mensajes = new HashMap<>();
-		private static int cdMensaje = 20;
+		private HashMap<UUID, Integer> mensajesPalabrasMagicas = new HashMap<>();
+		private static int cdMensajeCd = 20;
+		private static int cdMensajePalabrasMagicas = 40;
 
 		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks) {
+			this(ingrediente, chatColor, color, cooldownTicks,
+					ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!");
+		}
+
+		/**
+		 * Para las palabras mágicas puede usted usar: {nombre} {chatcolor} {atacante}
+		 * {enemigo}
+		 * 
+		 * @param ingrediente
+		 * @param chatColor
+		 * @param color
+		 * @param cooldownTicks
+		 * @param palabrasMagicas
+		 */
+		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks,
+				String palabrasMagicas) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
 			boolean nextMayus = true;
@@ -583,6 +659,7 @@ public class Varita extends ItemStack {
 			this.color = color;
 			this.cooldownTicks = cooldownTicks;
 			this.ingrediente = ingrediente;
+			this.palabras = palabrasMagicas;
 			metaFlechaNombre = name();
 			metaFlecha = new FixedMetadataValue(Varita.plugin, new FixedMetadataValue(Varita.plugin, true));
 		}
@@ -614,12 +691,21 @@ public class Varita extends ItemStack {
 			return ingrediente;
 		}
 
+		public String getPalabrasMagicas(String atacante, String enemigo) {
+			return palabras.replace("{nombre}", nombre).replace("{chatcolor}", chatColor)
+					.replace("{atacante}", atacante).replace("{enemigo}", enemigo);
+		}
+
 		public String getMetaNombre() {
 			return metaFlechaNombre;
 		}
 
 		public FixedMetadataValue getMetaFlecha() {
 			return metaFlecha;
+		}
+		
+		protected void resetTiempoPalabras(Player p) {
+			mensajesPalabrasMagicas.remove(p.getUniqueId());
 		}
 
 		protected boolean Accion(Player atacante, Entity victima, float potencia) {
@@ -630,14 +716,15 @@ public class Varita extends ItemStack {
 			if (player.hasPermission(plugin.USE)) {
 				boolean ok = true;
 				int ticks = player.getTicksLived();
-				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {
+//				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {
+				if (cooldownTicks > 0) {
 					if (cds.containsKey(player.getUniqueId())) {
 						int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
 						if (ticksObj > ticks) {
 							ok = false;
 							int espera = (int) ((ticksObj - ticks) / 20);
 							if (!mensajes.containsKey(player.getUniqueId())
-									|| mensajes.get(player.getUniqueId()) + cdMensaje <= ticks) {
+									|| mensajes.get(player.getUniqueId()) + cdMensajeCd <= ticks) {
 								player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
 										+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
 										+ plugin.textColor + ".");
@@ -646,7 +733,15 @@ public class Varita extends ItemStack {
 						}
 					}
 				}
-				if (ok || player.hasPermission(plugin.NO_CD)) {
+//				if (ok || player.hasPermission(plugin.NO_CD)) {
+				if (ok) {
+					if (!mensajesPalabrasMagicas.containsKey(player.getUniqueId())
+							|| mensajesPalabrasMagicas.get(player.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
+						player.chat(getPalabrasMagicas(
+								player.getCustomName() == null ? player.getName() : player.getCustomName(),
+								victima.getCustomName() == null ? victima.getName() : victima.getCustomName()));
+					}
+					mensajesPalabrasMagicas.put(player.getUniqueId(), ticks);
 					if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita)))
 						cds.put(player.getUniqueId(), ticks);
 				}
@@ -668,14 +763,14 @@ public class Varita extends ItemStack {
 			Varita varita = Varita.convertir(plugin, e.getOffHandItem());
 			if (varita != null) {
 				ItemStack otro = e.getMainHandItem();
-				for(Conjuro c : Conjuro.values()) {
+				for (Conjuro c : Conjuro.values()) {
 					if (c.getIngrediente().equals(otro.getType())) {
 						if (!c.equals(varita.getConjuro())) {
 							PlayerInventory pi = e.getPlayer().getInventory();
 							varita.cambiarConjuro(c);
-							otro.setAmount(otro.getAmount()-1);
+							otro.setAmount(otro.getAmount() - 1);
 							pi.setItemInOffHand(otro);
-							pi.setItemInMainHand(varita);	
+							pi.setItemInMainHand(varita);
 						}
 						e.setCancelled(true);
 						break;
@@ -683,7 +778,7 @@ public class Varita extends ItemStack {
 				}
 			}
 		}
-		
+
 		@EventHandler
 		private void onPrepararCrafteo(PrepareItemCraftEvent e) {
 			ItemStack[] items = e.getInventory().getMatrix();
@@ -711,17 +806,18 @@ public class Varita extends ItemStack {
 						}
 					}
 				}
-			} else if (e.getRecipe()!=null && e.getRecipe().getResult()!=null) {
+			} else if (e.getRecipe() != null && e.getRecipe().getResult() != null) {
 				Varita varita = convertir(plugin, e.getRecipe().getResult());
-				if (varita!=null) {
+				if (varita != null) {
 					if (!e.getView().getPlayer().hasPermission(plugin.CREATE)) {
 						ItemStack block = new ItemStack(Material.BARRIER);
 						ItemMeta im = block.getItemMeta();
 						im.setDisplayName("No puedes fabricar varitas");
-						im.getPersistentDataContainer().set(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE, Byte.MAX_VALUE);
+						im.getPersistentDataContainer().set(new NamespacedKey(plugin, "blockcraft"),
+								PersistentDataType.BYTE, Byte.MAX_VALUE);
 						block.setItemMeta(im);
 						e.getInventory().setResult(block);
-					}else {
+					} else {
 						e.getInventory().setResult(new Varita());
 					}
 				}
@@ -733,7 +829,8 @@ public class Varita extends ItemStack {
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
-				if (is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
+				if (is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
+						.has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
 					e.setCancelled(true);
 					return;
 				}
@@ -790,11 +887,7 @@ public class Varita extends ItemStack {
 			if (item != null) {
 				Varita varita = Varita.convertir(plugin, item);
 				if (varita != null) {
-					Float numeroMagicoPlayer = numerosMagicos.get(p.getUniqueId());
-					if (numeroMagicoPlayer == null) {
-						numeroMagicoPlayer = new Random().nextFloat();
-						numerosMagicos.put(p.getUniqueId(), numeroMagicoPlayer);
-					}
+					float numeroMagicoPlayer = getOrGenerateNumero(p);
 					if (varita.conjuro != null) {
 						varita.conjuro.Accionar(e.getPlayer(), e.getRightClicked(), varita.getNumeroMagico(),
 								numeroMagicoPlayer);
@@ -848,11 +941,7 @@ public class Varita extends ItemStack {
 					if (atacante.hasMetadata(c.getMetaNombre())) {
 						UUID jug = UUID.fromString(atacante.getMetadata("jugadorAtacante").get(0).asString());
 						Player p = Bukkit.getPlayer(jug);
-						Float numeroMagicoPlayer = numerosMagicos.get(p.getUniqueId());
-						if (numeroMagicoPlayer == null) {
-							numeroMagicoPlayer = new Random().nextFloat();
-							numerosMagicos.put(p.getUniqueId(), numeroMagicoPlayer);
-						}
+						float numeroMagicoPlayer = getOrGenerateNumero(p);
 						e.setCancelled(true);
 						atacante.remove();
 						c.Accionar(p, atacado, atacante.getMetadata("numeroMagicoVarita").get(0).asFloat(),
