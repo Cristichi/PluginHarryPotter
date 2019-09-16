@@ -8,12 +8,16 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import obj.Varita;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
+	public final static Permission USE = new Permission("magiaborras.use");
+	public final static Permission NO_CD = new Permission("magiaborras.nocd");
+	public final static Permission ADMIN = new Permission("magiaborras.admin");
 	private PluginDescriptionFile desc = getDescription();
 
 	private File archivoNumeros = new File("plugins/"+desc.getName()+"/Números Mágicos.yml");

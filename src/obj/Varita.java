@@ -40,6 +40,7 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -215,8 +216,8 @@ public class Varita extends ItemStack {
 		im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString());
 		ArrayList<String> arrayList = new ArrayList<>();
 		if (conjuro != null) {
-			im.setDisplayName(ChatColor.RESET + "Varita de "
-					+ madera.toString()+" ("+conjuro.getChatColor()+conjuro.toString()+ChatColor.RESET+")");
+			im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString() + " (" + conjuro.getChatColor()
+					+ conjuro.toString() + ChatColor.RESET + ")");
 			arrayList.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
 		}
 		arrayList.add(ChatColor.GRAY + "Núcleo: " + nucleo.toString());
@@ -264,6 +265,11 @@ public class Varita extends ItemStack {
 
 	public Longitud getLongitud() {
 		return longitud;
+	}
+	
+	public void cambiarConjuro(Conjuro conjuro) {
+		this.conjuro = conjuro;
+		recagarDatos();
 	}
 
 	public Conjuro getConjuro() {
@@ -446,7 +452,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED+"", Color.RED, 300) {
+		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED + "", Color.RED, 300) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof HumanEntity) {
@@ -464,7 +470,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY+"", Color.GRAY, 0) {
+		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY + "", Color.GRAY, 0) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -476,7 +482,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		PETRIFICUS_TOTALUS(Material.WHITE_DYE, ChatColor.BOLD+"", Color.WHITE, 500) {
+		PETRIFICUS_TOTALUS(Material.WHITE_DYE, ChatColor.BOLD + "", Color.WHITE, 500) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -500,7 +506,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		SECTUMSEMPRA(Material.REDSTONE, ChatColor.DARK_RED+"", new Color(115, 0, 0), 60) {
+		SECTUMSEMPRA(Material.REDSTONE, ChatColor.DARK_RED + "", new Color(115, 0, 0), 60) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -517,7 +523,7 @@ public class Varita extends ItemStack {
 							victimaViva.getWorld().playSound(victimaViva.getLocation(),
 									Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1, 0.01f);
 							victimaViva.damage(damage);
-							if (victimaViva.getHealth()<0) {
+							if (victimaViva.getHealth() < 0) {
 								victimaViva.setHealth(0);
 							}
 						}
@@ -528,7 +534,7 @@ public class Varita extends ItemStack {
 						public void run() {
 							Bukkit.getScheduler().cancelTask(id);
 						}
-					}, delay/2 + ticks);
+					}, delay / 2 + ticks);
 					return true;
 				}
 				return false;
@@ -607,27 +613,31 @@ public class Varita extends ItemStack {
 		}
 
 		public void Accionar(Player player, Entity victima, float numeroMagicoVarita, float numeroMagicoPlayer) {
-			boolean ok = true;
-			int ticks = player.getTicksLived();
-			if (cooldownTicks > 0) {
-				if (cds.containsKey(player.getUniqueId())) {
-					int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
-					if (ticksObj > ticks) {
-						ok = false;
-						int espera = (int) ((ticksObj - ticks) / 20);
-						if (!mensajes.containsKey(player.getUniqueId())
-								|| mensajes.get(player.getUniqueId()) + cdMensaje <= ticks) {
-							player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
-									+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
-									+ plugin.textColor + ".");
-							mensajes.put(player.getUniqueId(), ticks);
+			if (player.hasPermission(plugin.USE)) {
+				boolean ok = true;
+				int ticks = player.getTicksLived();
+				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {
+					if (cds.containsKey(player.getUniqueId())) {
+						int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
+						if (ticksObj > ticks) {
+							ok = false;
+							int espera = (int) ((ticksObj - ticks) / 20);
+							if (!mensajes.containsKey(player.getUniqueId())
+									|| mensajes.get(player.getUniqueId()) + cdMensaje <= ticks) {
+								player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
+										+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
+										+ plugin.textColor + ".");
+								mensajes.put(player.getUniqueId(), ticks);
+							}
 						}
 					}
 				}
-			}
-			if (ok) {
-				if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita)))
-					cds.put(player.getUniqueId(), ticks);
+				if (ok || player.hasPermission(plugin.NO_CD)) {
+					if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita)))
+						cds.put(player.getUniqueId(), ticks);
+				}
+			} else {
+				player.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
 			}
 		}
 
@@ -639,6 +649,27 @@ public class Varita extends ItemStack {
 
 	public static class VaritaListener implements Listener {
 
+		@EventHandler
+		private void onAlgo(PlayerSwapHandItemsEvent e) {
+			Varita varita = Varita.convertir(plugin, e.getOffHandItem());
+			if (varita != null) {
+				ItemStack otro = e.getMainHandItem();
+				for(Conjuro c : Conjuro.values()) {
+					if (c.getIngrediente().equals(otro.getType())) {
+						if (!c.equals(varita.getConjuro())) {
+							PlayerInventory pi = e.getPlayer().getInventory();
+							varita.cambiarConjuro(c);
+							otro.setAmount(otro.getAmount()-1);
+							pi.setItemInOffHand(otro);
+							pi.setItemInMainHand(varita);	
+						}
+						e.setCancelled(true);
+						break;
+					}
+				}
+			}
+		}
+		
 		@EventHandler
 		private void onPrepararCrafteo(PrepareItemCraftEvent e) {
 			ItemStack[] items = e.getInventory().getMatrix();
@@ -679,6 +710,30 @@ public class Varita extends ItemStack {
 					e.setCancelled(true);
 					HumanEntity p = e.getView().getPlayer();
 					PlayerInventory pi = p.getInventory();
+
+					switch (e.getAction()) {
+					case MOVE_TO_OTHER_INVENTORY:
+						if (p.getItemOnCursor() != null) {
+							if (pi.firstEmpty() < 0)
+								p.getWorld().dropItem(p.getLocation(), varita);
+							else {
+								pi.addItem(varita);
+							}
+						}
+						break;
+
+					default:
+						if (p.getItemOnCursor() != null) {
+							if (pi.firstEmpty() < 0)
+								p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
+							else {
+								pi.addItem(p.getItemOnCursor());
+							}
+							p.setItemOnCursor(varita);
+						}
+						break;
+					}
+
 					ItemStack[] matriz = inv.getMatrix();
 					for (ItemStack itemStack : matriz) {
 						if (itemStack != null) {
@@ -691,14 +746,6 @@ public class Varita extends ItemStack {
 							}
 						}
 					}
-					if (p.getItemOnCursor() != null) {
-						if (pi.firstEmpty() < 0)
-							p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
-						else {
-							pi.addItem(p.getItemOnCursor());
-						}
-					}
-					p.setItemOnCursor(varita);
 					inv.clear();
 				}
 			}
