@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.EntityEffect;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -31,6 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -209,13 +211,12 @@ public class Varita extends ItemStack {
 	}
 
 	public void recagarDatos() {
-
 		ItemMeta im = getItemMeta();
 		im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString());
 		ArrayList<String> arrayList = new ArrayList<>();
 		if (conjuro != null) {
-			im.setDisplayName(ChatColor.RESET + "" + conjuro.getChatColor() + "Varita" + ChatColor.RESET + " de "
-					+ madera.toString());
+			im.setDisplayName(ChatColor.RESET + "Varita de "
+					+ madera.toString()+" ("+conjuro.getChatColor()+conjuro.toString()+ChatColor.RESET+")");
 			arrayList.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
 		}
 		arrayList.add(ChatColor.GRAY + "Núcleo: " + nucleo.toString());
@@ -426,7 +427,7 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Conjuro {
-		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN, Color.GREEN, 1200) {
+		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -445,7 +446,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED, Color.RED, 300) {
+		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED+"", Color.RED, 300) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof HumanEntity) {
@@ -463,7 +464,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY, Color.GRAY, 0) {
+		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY+"", Color.GRAY, 0) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -474,10 +475,84 @@ public class Varita extends ItemStack {
 				}
 				return false;
 			}
+		},
+		PETRIFICUS_TOTALUS(Material.WHITE_DYE, ChatColor.BOLD+"", Color.WHITE, 500) {
+			@Override
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
+				if (victima instanceof LivingEntity) {
+					int ticks = (int) (60 * potencia) + 10;
+//					atacante.sendMessage("Ticks: " + ticks + " (" + (ticks / 20) + " seg)");
+//					atacante.sendMessage("Potencia: " + potencia);
+					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, ticks, 999), true);
+					final Location loc = victima.getLocation();
+					int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+						@Override
+						public void run() {
+							victima.teleport(loc);
+						}
+					}, 0, 1);
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+
+						@Override
+						public void run() {
+							Bukkit.getScheduler().cancelTask(id);
+						}
+					}, ticks);
+					return true;
+				}
+				return false;
+			}
+		},
+		SECTUMSEMPRA(Material.REDSTONE, ChatColor.DARK_RED+"", new Color(115, 0, 0), 60) {
+			@Override
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
+				if (victima instanceof LivingEntity) {
+					LivingEntity victimaViva = (LivingEntity) victima;
+					potencia = 1;
+					int delay = 40;
+					int ticks = 60;
+					int wait = 20;
+					int repes = ticks / wait;
+					double damage = victimaViva.getHealth() * potencia / repes;
+					atacante.sendMessage("Ticks: " + ticks);
+					atacante.sendMessage("Wait: " + wait);
+					atacante.sendMessage("Repes: " + repes);
+					atacante.sendMessage("Vida: " + victimaViva.getHealth());
+					atacante.sendMessage("Damage: " + damage);
+					atacante.sendMessage("% Vida: " + potencia * 100 + "%");
+					atacante.sendMessage("% Vida/tick: " + potencia / repes * 100 + "%");
+					atacante.sendMessage("Damage Total: " + damage * repes);
+					atacante.sendMessage("Potencia: " + potencia);
+					int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+						private int cont = 0;
+
+						@Override
+						public void run() {
+							victimaViva.getWorld().playSound(victimaViva.getLocation(),
+									Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1, 0.01f);
+							victimaViva.damage(damage);
+							if (victimaViva.getHealth()<0) {
+								victimaViva.setHealth(0);
+							}
+							System.out.println((++cont) + ": Se ha hecho " + damage + " a " + victimaViva.getType()
+									+ ", nueva vida: " + victimaViva.getHealth());
+						}
+					}, delay, wait);
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+
+						@Override
+						public void run() {
+							Bukkit.getScheduler().cancelTask(id);
+						}
+					}, delay/2 + ticks);
+					return true;
+				}
+				return false;
+			}
 		};
 		private String nombre;
 		private Material ingrediente;
-		private ChatColor chatColor;
+		private String chatColor;
 		private Color color;
 		private int cooldownTicks;
 		private String metaFlechaNombre;
@@ -486,7 +561,7 @@ public class Varita extends ItemStack {
 		private HashMap<UUID, Integer> mensajes = new HashMap<>();
 		private static int cdMensaje = 20;
 
-		private Conjuro(Material ingrediente, ChatColor chatColor, Color color, int cooldownTicks) {
+		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
 			boolean nextMayus = true;
@@ -508,7 +583,7 @@ public class Varita extends ItemStack {
 			metaFlecha = new FixedMetadataValue(Varita.plugin, new FixedMetadataValue(Varita.plugin, true));
 		}
 
-		private Conjuro(String nombre, ChatColor chatColor, Color color, int cooldownTicks) {
+		private Conjuro(String nombre, String chatColor, Color color, int cooldownTicks) {
 			this.nombre = nombre;
 			this.chatColor = chatColor;
 			this.color = color;
@@ -519,7 +594,7 @@ public class Varita extends ItemStack {
 			return nombre;
 		}
 
-		public ChatColor getChatColor() {
+		public String getChatColor() {
 			return chatColor;
 		}
 
@@ -667,7 +742,7 @@ public class Varita extends ItemStack {
 
 		@EventHandler
 		private void onInteract(PlayerInteractEvent e) {
-			if (e.getItem() != null) {
+			if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && e.getItem() != null) {
 				Varita varita = Varita.convertir(plugin, e.getItem());
 				if (varita != null) {
 					Player p = e.getPlayer();
@@ -677,11 +752,13 @@ public class Varita extends ItemStack {
 						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
 					}
 					if (varita.conjuro != null) {
+						// TODO ¿Cambiar por fireworks para ciertos hechizos?
 						Arrow rayo = p.launchProjectile(Arrow.class);
 						PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(rayo.getEntityId());
 						for (Player pl : Bukkit.getOnlinePlayers()) {
 							((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
 						}
+						rayo.setSilent(true);
 						rayo.setGravity(false);
 						rayo.setVelocity(rayo.getVelocity().normalize().multiply(12));
 						rayo.setMetadata("jugadorAtacante", new FixedMetadataValue(plugin, p.getUniqueId()));
@@ -729,9 +806,9 @@ public class Varita extends ItemStack {
 			if (proyectil instanceof Arrow) {
 				for (Conjuro c : Conjuro.values()) {
 					if (proyectil.hasMetadata(c.getMetaNombre())) {
-						for (Player pl : Bukkit.getOnlinePlayers()) {
-							pl.stopSound(Sound.ENTITY_ARROW_HIT);
-						}
+//						for (Player pl : Bukkit.getOnlinePlayers()) {
+//							pl.stopSound(Sound.ENTITY_ARROW_HIT);
+//						}
 						proyectil.remove();
 						break;
 					}

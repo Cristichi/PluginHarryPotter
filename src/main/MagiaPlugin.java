@@ -75,6 +75,16 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				}
 			}
 			break;
+		case "recargarinfo":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
+				if (varita!=null) {
+					varita.recagarDatos();
+					p.getInventory().setItemInMainHand(varita);
+				}
+			}
+			break;
 
 		default:
 			bueno = false;
