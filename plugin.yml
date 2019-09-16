@@ -11,10 +11,13 @@ permissions:
   magiaborras.*:
     children:
       magiaborras.use: true
+      magiaborras.create: true
       magiaborras.nocd: false
       magiaborras.admin: true
   magiaborras.use:
     default: false
+  magiaborras.create:
+    default: op
   magiaborras.nocd:
     default: false
   magiaborras.admin:

@@ -44,6 +44,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -76,6 +77,19 @@ public class Varita extends ItemStack {
 		keyFlexibilidad = new NamespacedKey(plugin, "varitaFlexibilidad");
 		keyLongitud = new NamespacedKey(plugin, "varitaLongitud");
 		keyConjuro = new NamespacedKey(plugin, "varitaHechizo");
+		
+		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), new Varita(new Random(0)));
+		recipe.shape("FGS","BPB","ERE");
+		recipe.setIngredient('F', Material.FERMENTED_SPIDER_EYE);
+		recipe.setIngredient('G', Material.GHAST_TEAR);
+		recipe.setIngredient('S', Material.SPIDER_EYE);
+
+		recipe.setIngredient('B', Material.WRITABLE_BOOK);
+		recipe.setIngredient('P', Material.STICK);
+
+		recipe.setIngredient('E', Material.ENDER_EYE);
+		recipe.setIngredient('R', Material.FIREWORK_ROCKET);
+		Bukkit.addRecipe(recipe);
 
 		Varita.numerosMagicos = new HashMap<>();
 	}
@@ -650,7 +664,7 @@ public class Varita extends ItemStack {
 	public static class VaritaListener implements Listener {
 
 		@EventHandler
-		private void onAlgo(PlayerSwapHandItemsEvent e) {
+		private void onSwap(PlayerSwapHandItemsEvent e) {
 			Varita varita = Varita.convertir(plugin, e.getOffHandItem());
 			if (varita != null) {
 				ItemStack otro = e.getMainHandItem();
@@ -697,6 +711,20 @@ public class Varita extends ItemStack {
 						}
 					}
 				}
+			} else if (e.getRecipe()!=null && e.getRecipe().getResult()!=null) {
+				Varita varita = convertir(plugin, e.getRecipe().getResult());
+				if (varita!=null) {
+					if (!e.getView().getPlayer().hasPermission(plugin.CREATE)) {
+						ItemStack block = new ItemStack(Material.BARRIER);
+						ItemMeta im = block.getItemMeta();
+						im.setDisplayName("No puedes fabricar varitas");
+						im.getPersistentDataContainer().set(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE, Byte.MAX_VALUE);
+						block.setItemMeta(im);
+						e.getInventory().setResult(block);
+					}else {
+						e.getInventory().setResult(new Varita());
+					}
+				}
 			}
 		}
 
@@ -705,6 +733,10 @@ public class Varita extends ItemStack {
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
+				if (is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
+					e.setCancelled(true);
+					return;
+				}
 				Varita varita = Varita.convertir(plugin, is);
 				if (varita != null) {
 					e.setCancelled(true);

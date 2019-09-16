@@ -16,6 +16,7 @@ import obj.Varita;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
 	public final Permission USE = new Permission("magiaborras.use");
+	public final Permission CREATE = new Permission("magiaborras.create");
 	public final Permission NO_CD = new Permission("magiaborras.nocd");
 	public final Permission ADMIN = new Permission("magiaborras.admin");
 	private PluginDescriptionFile desc = getDescription();
