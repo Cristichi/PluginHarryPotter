@@ -481,8 +481,6 @@ public class Varita extends ItemStack {
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
 					int ticks = (int) (60 * potencia) + 10;
-//					atacante.sendMessage("Ticks: " + ticks + " (" + (ticks / 20) + " seg)");
-//					atacante.sendMessage("Potencia: " + potencia);
 					((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, ticks, 999), true);
 					final Location loc = victima.getLocation();
 					int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -492,7 +490,6 @@ public class Varita extends ItemStack {
 						}
 					}, 0, 1);
 					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
 						@Override
 						public void run() {
 							Bukkit.getScheduler().cancelTask(id);
@@ -514,18 +511,7 @@ public class Varita extends ItemStack {
 					int wait = 20;
 					int repes = ticks / wait;
 					double damage = victimaViva.getHealth() * potencia / repes;
-					atacante.sendMessage("Ticks: " + ticks);
-					atacante.sendMessage("Wait: " + wait);
-					atacante.sendMessage("Repes: " + repes);
-					atacante.sendMessage("Vida: " + victimaViva.getHealth());
-					atacante.sendMessage("Damage: " + damage);
-					atacante.sendMessage("% Vida: " + potencia * 100 + "%");
-					atacante.sendMessage("% Vida/tick: " + potencia / repes * 100 + "%");
-					atacante.sendMessage("Damage Total: " + damage * repes);
-					atacante.sendMessage("Potencia: " + potencia);
 					int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-						private int cont = 0;
-
 						@Override
 						public void run() {
 							victimaViva.getWorld().playSound(victimaViva.getLocation(),
@@ -534,8 +520,6 @@ public class Varita extends ItemStack {
 							if (victimaViva.getHealth()<0) {
 								victimaViva.setHealth(0);
 							}
-							System.out.println((++cont) + ": Se ha hecho " + damage + " a " + victimaViva.getType()
-									+ ", nueva vida: " + victimaViva.getHealth());
 						}
 					}, delay, wait);
 					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
