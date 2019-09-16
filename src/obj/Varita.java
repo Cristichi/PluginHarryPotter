@@ -574,12 +574,6 @@ public class Varita extends ItemStack {
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				boolean gravitada = victima.hasGravity();
 				victima.setGravity(false);
-				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-					@Override
-					public void run() {
-						victima.setGravity(gravitada);
-					}
-				}, (long) (60 * potencia));
 				int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					@Override
 					public void run() {
@@ -605,6 +599,7 @@ public class Varita extends ItemStack {
 					public void run() {
 						Bukkit.getScheduler().cancelTask(idDist1);
 						Bukkit.getScheduler().cancelTask(idDist2);
+						victima.setGravity(gravitada);
 					}
 				}, (long) (60 * potencia));
 				resetTiempoPalabras(atacante);
