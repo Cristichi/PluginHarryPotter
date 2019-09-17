@@ -25,7 +25,6 @@ import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -605,6 +604,25 @@ public class Varita extends ItemStack {
 				resetTiempoPalabras(atacante);
 				return true;
 			}
+		},
+		DEPULSO(Material.IRON_DOOR, ChatColor.AQUA + "", Color.CYAN, 120) {
+			@Override
+			protected boolean Accion(Player atacante, Entity victima, float potencia) {
+				boolean gravitada = victima.hasGravity();
+				victima.setGravity(false);
+				Vector pos = victima.getLocation().toVector();
+				Vector target = atacante.getLocation().toVector();
+				Vector velocity = pos.subtract(target);
+				victima.setVelocity(velocity.normalize().multiply(3*potencia));
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+					@Override
+					public void run() {
+						victima.setGravity(gravitada);
+					}
+				}, (long) (60 * potencia));
+				resetTiempoPalabras(atacante);
+				return true;
+			}
 		};
 		private String nombre;
 		private Material ingrediente;
@@ -711,7 +729,7 @@ public class Varita extends ItemStack {
 		}
 
 		public void Accionar(Player player, Entity victima, float numeroMagicoVarita, float numeroMagicoPlayer) {
-			if (player.hasPermission(plugin.USE)) {
+			if (plugin.USE==null || player.hasPermission(plugin.USE)) {
 				boolean ok = true;
 				int ticks = player.getTicksLived();
 //				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {

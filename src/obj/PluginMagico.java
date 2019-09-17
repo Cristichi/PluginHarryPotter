@@ -7,7 +7,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PluginMagico extends JavaPlugin{
 	public Permission USE;
 	public Permission CREATE;
-	public Permission NO_CD;
 	public Permission ADMIN;
 
 	public ChatColor mainColor;

@@ -18,7 +18,5 @@ permissions:
     default: false
   magiaborras.create:
     default: op
-  magiaborras.nocd:
-    default: false
   magiaborras.admin:
     default: op
