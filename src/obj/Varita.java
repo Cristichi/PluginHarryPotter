@@ -45,6 +45,7 @@ import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -56,12 +57,13 @@ import org.bukkit.util.Vector;
 
 import com.sun.istack.internal.Nullable;
 
+import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
 
-	private static PluginMagico plugin;
+	private static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -69,7 +71,10 @@ public class Varita extends ItemStack {
 	private static NamespacedKey keyLongitud;
 	private static NamespacedKey keyConjuro;
 
-	public static void Init(PluginMagico plugin) {
+	public static void Init(MagiaPlugin plugin) {
+		if (plugin == null || plugin.USE == null) {
+			throw new NullPointerException("You must use a plugin to initiate Varita.");
+		}
 		Varita.plugin = plugin;
 		keyNumeroMagico = new NamespacedKey(plugin, "varitaNumeroMagico");
 		keyNucleo = new NamespacedKey(plugin, "varitaNucleo");
@@ -104,60 +109,62 @@ public class Varita extends ItemStack {
 	}
 
 	public static void guardarNumeros(File archivo) {
-		try {
-			archivo.getParentFile().mkdirs();
-			if (!archivo.exists()) {
-				archivo.createNewFile();
-			} else {
-				archivo.delete();
-				archivo.createNewFile();
-			}
-			FileWriter fw = new FileWriter(archivo);
-			BufferedWriter bw = new BufferedWriter(fw);
+		if (plugin != null)
+			try {
+				archivo.getParentFile().mkdirs();
+				if (!archivo.exists()) {
+					archivo.createNewFile();
+				} else {
+					archivo.delete();
+					archivo.createNewFile();
+				}
+				FileWriter fw = new FileWriter(archivo);
+				BufferedWriter bw = new BufferedWriter(fw);
 
-			String configTxt = "";
-			Set<UUID> keys = numerosMagicos.keySet();
-			for (UUID key : keys) {
-				Float value = numerosMagicos.get(key);
-				configTxt += key.toString() + " (" + Bukkit.getOfflinePlayer(key).getName() + "): " + value + "\n";
-			}
+				String configTxt = "";
+				Set<UUID> keys = numerosMagicos.keySet();
+				for (UUID key : keys) {
+					Float value = numerosMagicos.get(key);
+					configTxt += key.toString() + " (" + Bukkit.getOfflinePlayer(key).getName() + "): " + value + "\n";
+				}
 
-			bw.write(configTxt);
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+				bw.write(configTxt);
+				bw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	}
 
 	public static void cargarNumeros(File archivo) throws FileSystemException {
 		String linea = null;
 		int iLinea = 0;
-		try {
-			archivo.getParentFile().mkdirs();
-			if (!archivo.exists()) {
-				return;
-			}
-			FileReader fr = new FileReader(archivo);
-			BufferedReader br = new BufferedReader(fr);
-
-			while ((linea = br.readLine()) != null) {
-				iLinea++;
-				if (!linea.startsWith("#") && !linea.isEmpty()) {
-					StringTokenizer st = new StringTokenizer(linea, "(");
-					UUID uuid = UUID.fromString(st.nextToken().trim());
-					st = new StringTokenizer(st.nextToken(), ":");
-					st.nextToken();
-
-					Float numeroMagico = Float.parseFloat(st.nextToken().trim());
-					if (numeroMagico != null)
-						numerosMagicos.put(uuid, numeroMagico);
+		if (plugin != null)
+			try {
+				archivo.getParentFile().mkdirs();
+				if (!archivo.exists()) {
+					return;
 				}
+				FileReader fr = new FileReader(archivo);
+				BufferedReader br = new BufferedReader(fr);
+
+				while ((linea = br.readLine()) != null) {
+					iLinea++;
+					if (!linea.startsWith("#") && !linea.isEmpty()) {
+						StringTokenizer st = new StringTokenizer(linea, "(");
+						UUID uuid = UUID.fromString(st.nextToken().trim());
+						st = new StringTokenizer(st.nextToken(), ":");
+						st.nextToken();
+
+						Float numeroMagico = Float.parseFloat(st.nextToken().trim());
+						if (numeroMagico != null)
+							numerosMagicos.put(uuid, numeroMagico);
+					}
+				}
+				br.close();
+			} catch (Exception e) {
+				throw new FileSystemException(archivo.getName() + " could not be parsed"
+						+ (iLinea > 0 ? " (line " + iLinea + ": " + linea + ")" : ""));
 			}
-			br.close();
-		} catch (Exception e) {
-			throw new FileSystemException(archivo.getName() + " could not be parsed"
-					+ (iLinea > 0 ? " (line " + iLinea + ": " + linea + ")" : ""));
-		}
 	}
 
 	private float numeroMagico;
@@ -441,10 +448,6 @@ public class Varita extends ItemStack {
 			nombre = new String(cs);
 		}
 
-//		private Longitud(String nombre) {
-//			this.nombre = nombre;
-//		}
-
 		public String getNombre() {
 			return nombre;
 		}
@@ -456,7 +459,10 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Conjuro {
-		AVADA_KEDAVRA(Material.GREEN_DYE, ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200) {
+		AVADA_KEDAVRA(
+				new MaterialChoice(Material.CREEPER_HEAD, Material.DRAGON_HEAD, Material.PLAYER_HEAD,
+						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
+				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -495,7 +501,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.GRAY_DYE, ChatColor.GRAY + "", Color.GRAY, 0) {
+		WINGARDIUM_LEVIOSA(Material.FEATHER, ChatColor.GRAY + "", Color.GRAY, 0) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -507,7 +513,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		PETRIFICUS_TOTALUS(Material.WHITE_DYE, ChatColor.BOLD + "", Color.WHITE, 500) {
+		PETRIFICUS_TOTALUS(Material.STONE, ChatColor.BOLD + "", Color.WHITE, 500) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -613,7 +619,7 @@ public class Varita extends ItemStack {
 				Vector pos = victima.getLocation().toVector();
 				Vector target = atacante.getLocation().toVector();
 				Vector velocity = pos.subtract(target);
-				victima.setVelocity(velocity.normalize().multiply(3*potencia));
+				victima.setVelocity(velocity.normalize().multiply(3 * potencia));
 				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 					@Override
 					public void run() {
@@ -625,7 +631,7 @@ public class Varita extends ItemStack {
 			}
 		};
 		private String nombre;
-		private Material ingrediente;
+		private MaterialChoice ingredientes;
 		private String chatColor;
 		private Color color;
 		private int cooldownTicks;
@@ -638,11 +644,19 @@ public class Varita extends ItemStack {
 		private static int cdMensajeCd = 20;
 		private static int cdMensajePalabrasMagicas = 40;
 
-		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks) {
-			this(ingrediente, chatColor, color, cooldownTicks,
+		private Conjuro(MaterialChoice ingredientes, String chatColor, Color color, int cooldownTicks) {
+			this(ingredientes, chatColor, color, cooldownTicks,
 					ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!");
 		}
 
+		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks) {
+			this(new MaterialChoice(ingrediente), chatColor, color, cooldownTicks);
+		}
+		
+		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks,
+				String palabrasMagicas) {
+			this(new MaterialChoice(ingrediente), chatColor, color, cooldownTicks, palabrasMagicas);
+		}
 		/**
 		 * Para las palabras mágicas se puede usar:<br>
 		 * {nombre} Para el nombre del Conjuro<br>
@@ -650,13 +664,13 @@ public class Varita extends ItemStack {
 		 * {atacante} Para el nombre del mago atacante<br>
 		 * {enemigo} Para el nombre de la víctima del Conjuro
 		 * 
-		 * @param ingrediente
+		 * @param ingredientes
 		 * @param chatColor
 		 * @param color
 		 * @param cooldownTicks
 		 * @param palabrasMagicas
 		 */
-		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks,
+		private Conjuro(MaterialChoice ingredientes, String chatColor, Color color, int cooldownTicks,
 				String palabrasMagicas) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
@@ -674,17 +688,10 @@ public class Varita extends ItemStack {
 			this.chatColor = chatColor;
 			this.color = color;
 			this.cooldownTicks = cooldownTicks;
-			this.ingrediente = ingrediente;
+			this.ingredientes = ingredientes;
 			this.palabras = palabrasMagicas;
 			metaFlechaNombre = name();
 			metaFlecha = new FixedMetadataValue(Varita.plugin, new FixedMetadataValue(Varita.plugin, true));
-		}
-
-		private Conjuro(String nombre, String chatColor, Color color, int cooldownTicks) {
-			this.nombre = nombre;
-			this.chatColor = chatColor;
-			this.color = color;
-			this.cooldownTicks = cooldownTicks;
 		}
 
 		public String getNombre() {
@@ -703,8 +710,8 @@ public class Varita extends ItemStack {
 			return cooldownTicks;
 		}
 
-		public Material getIngrediente() {
-			return ingrediente;
+		public MaterialChoice getIngredientes() {
+			return ingredientes;
 		}
 
 		public String getPalabrasMagicas(String atacante, String enemigo) {
@@ -729,7 +736,7 @@ public class Varita extends ItemStack {
 		}
 
 		public void Accionar(Player player, Entity victima, float numeroMagicoVarita, float numeroMagicoPlayer) {
-			if (plugin.USE==null || player.hasPermission(plugin.USE)) {
+			if (player.hasPermission(plugin.USE)) {
 				boolean ok = true;
 				int ticks = player.getTicksLived();
 //				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {
@@ -758,8 +765,10 @@ public class Varita extends ItemStack {
 								victima.getCustomName() == null ? victima.getName() : victima.getCustomName()));
 					}
 					mensajesPalabrasMagicas.put(player.getUniqueId(), ticks);
-					if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita)))
+					if (Accion(player, victima, 1 - Math.abs(numeroMagicoPlayer - numeroMagicoVarita))) {
 						cds.put(player.getUniqueId(), ticks);
+						mensajes.put(player.getUniqueId(), ticks);
+					}
 				}
 			} else {
 				player.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
@@ -780,7 +789,7 @@ public class Varita extends ItemStack {
 			if (varita != null) {
 				ItemStack otro = e.getMainHandItem();
 				for (Conjuro c : Conjuro.values()) {
-					if (c.getIngrediente().equals(otro.getType())) {
+					if (c.getIngredientes().test(otro)) {
 						if (!c.equals(varita.getConjuro())) {
 							PlayerInventory pi = e.getPlayer().getInventory();
 							varita.cambiarConjuro(c);
@@ -816,7 +825,7 @@ public class Varita extends ItemStack {
 				}
 				if (v0 != null) {
 					for (Conjuro c : Conjuro.values()) {
-						if (ingrediente1.getType().equals(c.getIngrediente())) {
+						if (c.getIngredientes().test(ingrediente1)) {
 							e.getInventory().setResult(new Varita(v0, c));
 							break;
 						}

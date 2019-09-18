@@ -7,17 +7,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import obj.PluginMagico;
 import obj.Varita;
 
-public class MagiaPlugin extends PluginMagico implements Listener {
-	public final Permission USE = new Permission("magiaborras.use");
-	public final Permission CREATE = new Permission("magiaborras.create");
-	public final Permission ADMIN = new Permission("magiaborras.admin");
+public class MagiaPlugin extends JavaPlugin {
+	public Permission USE = new Permission("magiaborras.use");
+	public Permission CREATE = new Permission("magiaborras.create");
+	public Permission ADMIN = new Permission("magiaborras.admin");
 	private PluginDescriptionFile desc = getDescription();
 
 	private File archivoNumeros = new File("plugins/" + desc.getName() + "/Números Mágicos.yml");
@@ -37,7 +36,7 @@ public class MagiaPlugin extends PluginMagico implements Listener {
 			e.printStackTrace();
 		}
 		getServer().getPluginManager().registerEvents(new Varita.VaritaListener(), this);
-		getServer().getPluginManager().registerEvents(this, this);
+//		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
 	}
 
