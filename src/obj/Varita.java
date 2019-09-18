@@ -44,8 +44,8 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -778,6 +778,21 @@ public class Varita extends ItemStack {
 		@Override
 		public String toString() {
 			return nombre;
+		}
+		
+		public static class Tipos extends ArrayList<Tipo>{
+			private static final long serialVersionUID = -4465391248913994109L;
+			
+			public Tipos(Tipo... tipos) {
+				super(tipos.length);
+				for (Tipo tipo : tipos) {
+					add(tipo);
+				}
+			}
+		}
+		
+		public static enum Tipo{
+			DISTANCIA, GOLPE, AREA_MAGO, AREA_MIRADA
 		}
 	}
 
