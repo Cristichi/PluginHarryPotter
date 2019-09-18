@@ -33,6 +33,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -63,6 +64,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
 
+	private static ShapedRecipe receta;
+	
 	private static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
@@ -83,20 +86,24 @@ public class Varita extends ItemStack {
 		keyLongitud = new NamespacedKey(plugin, "varitaLongitud");
 		keyConjuro = new NamespacedKey(plugin, "varitaHechizo");
 
-		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), new Varita(new Random(0)));
-		recipe.shape("FGS", "BPB", "ERE");
-		recipe.setIngredient('F', Material.FERMENTED_SPIDER_EYE);
-		recipe.setIngredient('G', Material.GHAST_TEAR);
-		recipe.setIngredient('S', Material.SPIDER_EYE);
+		receta = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), new Varita(new Random(0)));
+		receta.shape("FGS", "BPB", "ERE");
+		receta.setIngredient('F', Material.FERMENTED_SPIDER_EYE);
+		receta.setIngredient('G', Material.GHAST_TEAR);
+		receta.setIngredient('S', Material.SPIDER_EYE);
 
-		recipe.setIngredient('B', Material.WRITABLE_BOOK);
-		recipe.setIngredient('P', Material.STICK);
+		receta.setIngredient('B', Material.WRITABLE_BOOK);
+		receta.setIngredient('P', Material.STICK);
 
-		recipe.setIngredient('E', Material.ENDER_EYE);
-		recipe.setIngredient('R', Material.FIREWORK_ROCKET);
-		Bukkit.addRecipe(recipe);
+		receta.setIngredient('E', Material.ENDER_EYE);
+		receta.setIngredient('R', Material.FIREWORK_ROCKET);
+		Bukkit.addRecipe(receta);
 
 		Varita.numerosMagicos = new HashMap<>();
+	}
+	
+	public static ShapedRecipe getReceta() {
+		return receta;
 	}
 
 	public static float getOrGenerateNumero(Player player) {
@@ -217,6 +224,9 @@ public class Varita extends ItemStack {
 	 * @return Varita si el ItemStack es una varita correcta, null en otro caso
 	 */
 	public static Varita convertir(Plugin plugin, ItemStack posibleVarita) {
+		if (posibleVarita==null) 
+			return null;
+		
 		String nucleo = null, madera, flexibilidad, longitud, conjuro;
 		Float numeroMagico;
 		try {
@@ -462,6 +472,7 @@ public class Varita extends ItemStack {
 		AVADA_KEDAVRA(
 				new MaterialChoice(Material.CREEPER_HEAD, Material.DRAGON_HEAD, Material.PLAYER_HEAD,
 						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
+				new Tipos(Tipo.DISTANCIA_ENTIDAD),
 				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
@@ -482,7 +493,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, ChatColor.RED + "", Color.RED, 300) {
+		EXPELLIARMUS(Material.RED_DYE, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.RED + "", Color.RED, 300) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof HumanEntity) {
@@ -501,7 +512,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.FEATHER, ChatColor.GRAY + "", Color.GRAY, 0) {
+		WINGARDIUM_LEVIOSA(Material.FEATHER, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.GRAY + "", Color.GRAY, 0) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -513,7 +524,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		PETRIFICUS_TOTALUS(Material.STONE, ChatColor.BOLD + "", Color.WHITE, 500) {
+		PETRIFICUS_TOTALUS(Material.STONE, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.BOLD + "", Color.WHITE, 500) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -538,7 +549,7 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		SECTUMSEMPRA(Material.REDSTONE, ChatColor.DARK_RED + "", new Color(115, 0, 0), 60) {
+		SECTUMSEMPRA(Material.REDSTONE, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.DARK_RED + "", new Color(115, 0, 0), 1000) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
 				if (victima instanceof LivingEntity) {
@@ -573,11 +584,11 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		ACCIO(Material.COMPASS, ChatColor.AQUA + "", Color.CYAN, 120,
+		ACCIO(Material.COMPASS, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.AQUA + "", Color.CYAN, 120,
 				ChatColor.RESET + "¡{chatcolor}{nombre} {enemigo}" + ChatColor.RESET + "!") {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
-				boolean gravitada = victima.hasGravity();
+				boolean gravitada = false;
 				victima.setGravity(false);
 				int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					@Override
@@ -611,10 +622,10 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-		DEPULSO(Material.IRON_DOOR, ChatColor.AQUA + "", Color.CYAN, 120) {
+		DEPULSO(Material.IRON_DOOR, new Tipos(Tipo.DISTANCIA_ENTIDAD), ChatColor.AQUA + "", Color.CYAN, 120) {
 			@Override
 			protected boolean Accion(Player atacante, Entity victima, float potencia) {
-				boolean gravitada = victima.hasGravity();
+				boolean gravitada = false;
 				victima.setGravity(false);
 				Vector pos = victima.getLocation().toVector();
 				Vector target = atacante.getLocation().toVector();
@@ -632,6 +643,7 @@ public class Varita extends ItemStack {
 		};
 		private String nombre;
 		private MaterialChoice ingredientes;
+		private Conjuro.Tipos tipos;
 		private String chatColor;
 		private Color color;
 		private int cooldownTicks;
@@ -644,18 +656,18 @@ public class Varita extends ItemStack {
 		private static int cdMensajeCd = 20;
 		private static int cdMensajePalabrasMagicas = 40;
 
-		private Conjuro(MaterialChoice ingredientes, String chatColor, Color color, int cooldownTicks) {
-			this(ingredientes, chatColor, color, cooldownTicks,
+		private Conjuro(MaterialChoice ingredientes, Tipos tipos, String chatColor, Color color, int cooldownTicks) {
+			this(ingredientes, tipos, chatColor, color, cooldownTicks,
 					ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!");
 		}
 
-		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks) {
-			this(new MaterialChoice(ingrediente), chatColor, color, cooldownTicks);
+		private Conjuro(Material ingrediente, Tipos tipos, String chatColor, Color color, int cooldownTicks) {
+			this(new MaterialChoice(ingrediente), tipos, chatColor, color, cooldownTicks);
 		}
 		
-		private Conjuro(Material ingrediente, String chatColor, Color color, int cooldownTicks,
+		private Conjuro(Material ingrediente, Tipos tipos, String chatColor, Color color, int cooldownTicks,
 				String palabrasMagicas) {
-			this(new MaterialChoice(ingrediente), chatColor, color, cooldownTicks, palabrasMagicas);
+			this(new MaterialChoice(ingrediente), tipos, chatColor, color, cooldownTicks, palabrasMagicas);
 		}
 		/**
 		 * Para las palabras mágicas se puede usar:<br>
@@ -665,12 +677,13 @@ public class Varita extends ItemStack {
 		 * {enemigo} Para el nombre de la víctima del Conjuro
 		 * 
 		 * @param ingredientes
+		 * @param tipos
 		 * @param chatColor
 		 * @param color
 		 * @param cooldownTicks
 		 * @param palabrasMagicas
 		 */
-		private Conjuro(MaterialChoice ingredientes, String chatColor, Color color, int cooldownTicks,
+		private Conjuro(MaterialChoice ingredientes, Tipos tipos, String chatColor, Color color, int cooldownTicks,
 				String palabrasMagicas) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
@@ -686,6 +699,7 @@ public class Varita extends ItemStack {
 			}
 			nombre = new String(cs);
 			this.chatColor = chatColor;
+			this.tipos = tipos;
 			this.color = color;
 			this.cooldownTicks = cooldownTicks;
 			this.ingredientes = ingredientes;
@@ -696,6 +710,14 @@ public class Varita extends ItemStack {
 
 		public String getNombre() {
 			return nombre;
+		}
+		
+		public Conjuro.Tipos getTipos() {
+			return tipos;
+		}
+		
+		public boolean isTipo(Tipo tipo) {
+			return tipos.contains(tipo);
 		}
 
 		public String getChatColor() {
@@ -791,12 +813,28 @@ public class Varita extends ItemStack {
 			}
 		}
 		
+		//TODO
 		public static enum Tipo{
-			DISTANCIA, GOLPE, AREA_MAGO, AREA_MIRADA
+			DISTANCIA_ENTIDAD, DISTANCIA_BLOQUE, GOLPE, AREA_MAGO, AREA_MIRADA
 		}
 	}
 
 	public static class VaritaListener implements Listener {
+
+		@EventHandler
+		private void onPlaceConVarita(BlockPlaceEvent e) {
+			Player p = e.getPlayer();
+			Varita varita = Varita.convertir(plugin, p.getInventory().getItemInMainHand());
+			if (varita != null) {
+				ItemStack otro = p.getInventory().getItemInOffHand();
+				for (Conjuro c : Conjuro.values()) {
+					if (c.getIngredientes().test(otro)) {
+						e.setCancelled(true);
+						break;
+					}
+				}
+			}
+		}
 
 		@EventHandler
 		private void onSwap(PlayerSwapHandItemsEvent e) {
