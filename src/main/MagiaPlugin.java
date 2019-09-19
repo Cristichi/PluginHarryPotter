@@ -25,7 +25,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import obj.Varita;
 import obj.Varita.Conjuro;
 
-public class MagiaPlugin extends JavaPlugin implements Listener{
+public class MagiaPlugin extends JavaPlugin implements Listener {
 	public Permission USE = new Permission("magiaborras.use");
 	public Permission CREATE = new Permission("magiaborras.create");
 	public Permission ADMIN = new Permission("magiaborras.admin");
@@ -83,17 +83,17 @@ public class MagiaPlugin extends JavaPlugin implements Listener{
 		case "hechizos":
 			String conjuros = header + "Conjuros y sus ingredientes:";
 			for (Conjuro c : Conjuro.values()) {
-				String ing = accentColor.toString();
+				String ing = "";
 				List<Material> mats = c.getIngredientes().getChoices();
 				for (int i = 0; i < mats.size(); i++) {
-					ing += mats.get(i).toString().toLowerCase().replace("_", " ");
+					ing += accentColor + mats.get(i).toString().toLowerCase().replace("_", " ");
 					if (i == mats.size() - 2) {
 						ing += textColor + " o " + textColor;
 					} else if (i != mats.size() - 1) {
 						ing += textColor + ", " + textColor;
 					}
 				}
-				conjuros += "\n [" + c.getChatColor() + c.getNombre() + textColor + "]: " + ing;
+				conjuros += "\n " + textColor + "[" + c.getChatColor() + c.getNombre() + textColor + "]: " + ing;
 			}
 			sender.sendMessage(conjuros);
 			break;
@@ -106,12 +106,12 @@ public class MagiaPlugin extends JavaPlugin implements Listener{
 				Map<Character, ItemStack> mapa = Varita.getReceta().getIngredientMap();
 				ItemStack[] matrix = inv.getContents();
 				matrix[0] = new Varita();
-				System.out.println("forma: "+forma);
-				System.out.println("mapa keys: "+mapa.keySet());
-				System.out.println("mapa vals: "+mapa.values());
+				System.out.println("forma: " + forma);
+				System.out.println("mapa keys: " + mapa.keySet());
+				System.out.println("mapa vals: " + mapa.values());
 				for (int i = 0; i < 9; i++) {
-					System.out.println(mapa.get(forma[i/3].charAt(i%3)));
-					matrix[i+1] = mapa.get(forma[i/3].charAt(i%3));
+					System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
+					matrix[i + 1] = mapa.get(forma[i / 3].charAt(i % 3));
 				}
 				inv.setContents(matrix);
 				p.openInventory(inv);
@@ -120,7 +120,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener{
 		case "test":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
 				if (varita == null) {
 					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
@@ -133,7 +133,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener{
 		case "recargarinfo":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				Varita varita = Varita.convertir(this, p.getInventory().getItemInMainHand());
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
 				if (varita != null) {
 					varita.recagarDatos();
 					p.getInventory().setItemInMainHand(varita);
@@ -147,13 +147,12 @@ public class MagiaPlugin extends JavaPlugin implements Listener{
 		}
 		return bueno;
 	}
-	
 
 	@EventHandler
 	private void onCrafteo(InventoryClickEvent e) {
 		Inventory inv = e.getInventory();
 		if (inv instanceof CraftInventoryCustom) {
-			if (Varita.convertir(this, inv.getItem(0))!=null) {
+			if (Varita.convertir(inv.getItem(0)) != null) {
 				e.setCancelled(true);
 			}
 		}
