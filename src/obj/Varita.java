@@ -830,8 +830,7 @@ public class Varita extends ItemStack {
 			if (palabrasMagicas && puede) {
 				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
 						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
-					mago.chat(
-							getPalabrasMagicas(mago.getCustomName() == null ? mago.getName() : mago.getCustomName()));
+					mago.chat(getPalabrasMagicas(mago.getCustomName() == null ? mago.getName() : mago.getCustomName()));
 				}
 				mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
 			}
@@ -1037,7 +1036,8 @@ public class Varita extends ItemStack {
 
 		@EventHandler
 		private void onInteract(PlayerInteractEvent e) {
-			if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && e.getItem() != null) {
+			if ((e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+					&& e.getItem() != null) {
 				Varita varita = convertir(e.getItem());
 				if (varita != null) {
 					Player p = e.getPlayer();
@@ -1062,13 +1062,14 @@ public class Varita extends ItemStack {
 
 									rayo.setSilent(true);
 									rayo.setGravity(false);
-									rayo.setVelocity(rayo.getVelocity().normalize());
+									rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
 									rayo.setMetadata("jugadorAtacante",
 											new FixedMetadataValue(plugin, p.getUniqueId()));
 									rayo.setMetadata("numeroMagicoVarita",
 											new FixedMetadataValue(plugin, varita.getNumeroMagico()));
 									rayo.setMetadata(c.getMetaNombre(), c.getMetaFlecha());
 									if (c.isTipoProyectil(TipoProyectil.COHETE)) {
+										rayo.setVelocity(rayo.getVelocity().normalize());
 										int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin,
 												new Runnable() {
 													@Override
@@ -1089,14 +1090,14 @@ public class Varita extends ItemStack {
 													Bukkit.getScheduler().cancelTask(id);
 												}
 											}
-										}, 16);
+										}, 20);
 									} else {
 										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 											@Override
 											public void run() {
 												rayo.remove();
 											}
-										}, 16);
+										}, 2);
 									}
 								}
 							}
@@ -1131,7 +1132,7 @@ public class Varita extends ItemStack {
 			} else if (atacante instanceof Player) {
 				Player p = (Player) atacante;
 				Varita varita = convertir(p.getInventory().getItemInMainHand());
-				if (varita != null && varita.getConjuro()!=null)
+				if (varita != null && varita.getConjuro() != null)
 					for (Conjuro c : Conjuro.values())
 						if (c.isTipoLanzamiento(TipoLanzamiento.GOLPE) && varita.getConjuro().equals(c)) {
 							e.setCancelled(true);
