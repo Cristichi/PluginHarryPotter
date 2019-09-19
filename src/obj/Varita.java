@@ -1,6 +1,5 @@
 package obj;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,10 +19,13 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
@@ -45,6 +47,7 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
@@ -62,6 +65,7 @@ import org.bukkit.util.Vector;
 import main.MagiaPlugin;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
+import obj.Varita.Conjuro.TipoProyectil;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
@@ -474,8 +478,8 @@ public class Varita extends ItemStack {
 		AVADA_KEDAVRA(
 				new MaterialChoice(Material.CREEPER_HEAD, Material.DRAGON_HEAD, Material.PLAYER_HEAD,
 						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE), ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN,
-				1200) {
+				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
+				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, TipoProyectil.COHETE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof LivingEntity) {
@@ -495,7 +499,8 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		EXPELLIARMUS(Material.RED_DYE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "", Color.RED, 300) {
+		EXPELLIARMUS(Material.RED_DYE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "",
+				Color.RED, 300, TipoProyectil.COHETE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof HumanEntity) {
@@ -514,7 +519,8 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.FEATHER, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.GRAY + "", Color.GRAY, 0) {
+		WINGARDIUM_LEVIOSA(Material.FEATHER, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				ChatColor.GRAY + "", Color.GRAY, 0, TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof LivingEntity) {
@@ -526,7 +532,8 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		PETRIFICUS_TOTALUS(Material.STONE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "", Color.WHITE, 500) {
+		PETRIFICUS_TOTALUS(Material.STONE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "",
+				Color.WHITE, 500, TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof LivingEntity) {
@@ -553,8 +560,8 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		SECTUMSEMPRA(Material.REDSTONE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.DARK_RED + "",
-				new Color(115, 0, 0), 1000) {
+		SECTUMSEMPRA(Material.REDSTONE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				ChatColor.DARK_RED + "", Color.fromRGB(115, 0, 0), 1000, TipoProyectil.COHETE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof LivingEntity) {
@@ -589,11 +596,11 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		ACCIO(Material.COMPASS, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "", Color.CYAN, 120,
-				ChatColor.RESET + "¡{chatcolor}{nombre} {enemigo}" + ChatColor.RESET + "!") {
+		ACCIO(Material.COMPASS, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "",
+				Color.AQUA, 120, TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
-				boolean gravitada = false;
+				boolean gravitada = true;
 				objetivo.setGravity(false);
 				int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					@Override
@@ -627,10 +634,11 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-		DEPULSO(Material.IRON_DOOR, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "", Color.CYAN, 120) {
+		DEPULSO(Material.IRON_DOOR, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "",
+				Color.AQUA, 120, TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
-				boolean gravitada = false;
+				boolean gravitada = true;
 				objetivo.setGravity(false);
 				Vector pos = objetivo.getLocation().toVector();
 				Vector target = mago.getLocation().toVector();
@@ -646,8 +654,9 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-		ARRESTO_MOMENTUM(new MaterialChoice(Material.SPONGE, Material.WET_SPONGE), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
-				ChatColor.AQUA + "", Color.CYAN, 0) {
+		ARRESTO_MOMENTUM(new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
+				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 0,
+				TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				Location centro = mago.getLocation();
@@ -655,17 +664,19 @@ public class Varita extends ItemStack {
 				Collection<Entity> entidades = centro.getWorld().getNearbyEntities(centro, radio, radio, radio, null);
 				for (Entity ent : entidades) {
 					if (ent instanceof LivingEntity) {
-						((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, (int) (20*potencia), (int)(3*potencia)), true);
+						((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,
+								(int) (20 * potencia), (int) (3 * potencia)), true);
 					}
 					ent.setVelocity(ent.getVelocity().setY(0));
-					ent.setFallDistance(0);	
+					ent.setFallDistance(0);
 				}
 				return true;
 			}
 		};
 		private String nombre;
 		private MaterialChoice ingredientes;
-		private Conjuro.TiposLanzamiento tipos;
+		private TiposLanzamiento tiposLanzamiento;
+		private TipoProyectil tipoProyectil;
 		private String chatColor;
 		private Color color;
 		private int cooldownTicks;
@@ -678,18 +689,21 @@ public class Varita extends ItemStack {
 		private static int cdMensajeCd = 20;
 		private static int cdMensajePalabrasMagicas = 40;
 
-		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tipos, String chatColor, Color color, int cooldownTicks) {
-			this(ingredientes, tipos, chatColor, color, cooldownTicks,
-					ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!");
+		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
+				int cooldownTicks, TipoProyectil tipoProyectil) {
+			this(ingredientes, tiposLanzamiento, chatColor, color, cooldownTicks,
+					ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!", tipoProyectil);
 		}
 
-		private Conjuro(Material ingrediente, TiposLanzamiento tipos, String chatColor, Color color, int cooldownTicks) {
-			this(new MaterialChoice(ingrediente), tipos, chatColor, color, cooldownTicks);
+		private Conjuro(Material ingrediente, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
+				int cooldownTicks, TipoProyectil tipoProyectil) {
+			this(new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks, tipoProyectil);
 		}
 
-		private Conjuro(Material ingrediente, TiposLanzamiento tipos, String chatColor, Color color, int cooldownTicks,
-				String palabrasMagicas) {
-			this(new MaterialChoice(ingrediente), tipos, chatColor, color, cooldownTicks, palabrasMagicas);
+		private Conjuro(Material ingrediente, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
+				int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
+			this(new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks, palabrasMagicas,
+					tipoProyectil);
 		}
 
 		/**
@@ -697,17 +711,17 @@ public class Varita extends ItemStack {
 		 * {nombre} Para el nombre del Conjuro<br>
 		 * {chatcolor} Para el color del Conjuro<br>
 		 * {atacante} Para el nombre del mago atacante<br>
-		 * {enemigo} Para el nombre de la víctima del Conjuro
 		 * 
 		 * @param ingredientes
-		 * @param tipos
+		 * @param tiposLanzamiento
 		 * @param chatColor
 		 * @param color
 		 * @param cooldownTicks
 		 * @param palabrasMagicas
+		 * @param tipoProyectil    El tipo de proyectil que usa el hechizo
 		 */
-		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tipos, String chatColor, Color color, int cooldownTicks,
-				String palabrasMagicas) {
+		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
+				int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
 			nombre = name().toLowerCase().replace("_", " ");
 			char[] cs = nombre.toCharArray();
 			boolean nextMayus = true;
@@ -722,7 +736,8 @@ public class Varita extends ItemStack {
 			}
 			nombre = new String(cs);
 			this.chatColor = chatColor;
-			this.tipos = tipos;
+			this.tiposLanzamiento = tiposLanzamiento;
+			this.tipoProyectil = tipoProyectil;
 			this.color = color;
 			this.cooldownTicks = cooldownTicks;
 			this.ingredientes = ingredientes;
@@ -735,12 +750,12 @@ public class Varita extends ItemStack {
 			return nombre;
 		}
 
-		public Conjuro.TiposLanzamiento getTipos() {
-			return tipos;
+		public boolean isTipoLanzamiento(TipoLanzamiento tipo) {
+			return tiposLanzamiento.contains(tipo);
 		}
 
-		public boolean isTipo(TipoLanzamiento tipo) {
-			return tipos.contains(tipo);
+		public boolean isTipoProyectil(TipoProyectil tipo) {
+			return tipoProyectil.equals(tipo);
 		}
 
 		public String getChatColor() {
@@ -759,9 +774,9 @@ public class Varita extends ItemStack {
 			return ingredientes;
 		}
 
-		public String getPalabrasMagicas(String atacante, String enemigo) {
-			return palabras.replace("{nombre}", nombre).replace("{chatcolor}", chatColor)
-					.replace("{atacante}", atacante).replace("{enemigo}", enemigo);
+		public String getPalabrasMagicas(String atacante) {
+			return palabras.replace("{nombre}", nombre).replace("{chatcolor}", chatColor).replace("{atacante}",
+					atacante);
 		}
 
 		public String getMetaNombre() {
@@ -776,55 +791,65 @@ public class Varita extends ItemStack {
 			mensajesPalabrasMagicas.remove(p.getUniqueId());
 		}
 
+		protected void ponerEnCD(Player p) {
+			cds.put(p.getUniqueId(), p.getTicksLived());
+		}
+
 		protected boolean Accion(Player mago, @Nullable Entity victima, @Nullable Block bloque, Varita varita,
 				float potencia) {
 			return false;
 		}
 
-		public void Accionar(Player player, @Nullable Entity victima, @Nullable Block bloque, Varita varita,
-				TipoLanzamiento tipoLanzamiento) {
-			if (varita == null) {
-				return;
-			}
-			if (player.hasPermission(plugin.USE)) {
-				boolean ok = true;
-				int ticks = player.getTicksLived();
-//				if (cooldownTicks > 0 && !player.hasPermission(plugin.NO_CD)) {
+		public boolean puedeLanzar(Player mago, @Nullable Entity victima, boolean avisar, boolean palabrasMagicas) {
+			boolean puede = true;
+			int ticks = mago.getTicksLived();
+			if (mago.hasPermission(plugin.USE)) {
 				if (cooldownTicks > 0) {
-					if (cds.containsKey(player.getUniqueId())) {
-						int ticksObj = cds.get(player.getUniqueId()) + cooldownTicks;
+					if (cds.containsKey(mago.getUniqueId())) {
+						int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks;
 						if (ticksObj > ticks) {
-							ok = false;
-							int espera = (int) ((ticksObj - ticks) / 20);
-							if (!mensajes.containsKey(player.getUniqueId())
-									|| mensajes.get(player.getUniqueId()) + cdMensajeCd <= ticks) {
-								player.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
-										+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
-										+ plugin.textColor + ".");
-								mensajes.put(player.getUniqueId(), ticks);
+							puede = false;
+							if (avisar) {
+								int espera = (int) ((ticksObj - ticks) / 20);
+								if (!mensajes.containsKey(mago.getUniqueId())
+										|| mensajes.get(mago.getUniqueId()) + cdMensajeCd <= ticks) {
+									mago.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
+											+ plugin.textColor + " segundos para volver a lanzar " + chatColor
+											+ toString() + plugin.textColor + ".");
+									mensajes.put(mago.getUniqueId(), ticks);
+								}
 							}
 						}
 					}
 				}
-//				if (ok || player.hasPermission(plugin.NO_CD)) {
-				if (ok) {
-					if (!mensajesPalabrasMagicas.containsKey(player.getUniqueId())
-							|| mensajesPalabrasMagicas.get(player.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
-						player.chat(getPalabrasMagicas(
-								player.getCustomName() == null ? player.getName() : player.getCustomName(),
-								victima == null ? ""
-										: victima.getCustomName() == null ? victima.getName()
-												: victima.getCustomName()));
-					}
-					mensajesPalabrasMagicas.put(player.getUniqueId(), ticks);
-					if (Accion(player, victima, bloque, varita,
-							1 - Math.abs(getOrGenerateNumero(player) - varita.getNumeroMagico()))) {
-						cds.put(player.getUniqueId(), ticks);
-						mensajes.put(player.getUniqueId(), ticks);
-					}
-				}
 			} else {
-				player.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
+				puede = false;
+				if (avisar)
+					mago.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
+			}
+			if (palabrasMagicas && puede) {
+				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
+						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
+					mago.chat(
+							getPalabrasMagicas(mago.getCustomName() == null ? mago.getName() : mago.getCustomName()));
+				}
+				mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
+			}
+			return puede;
+		}
+
+		public void Accionar(Player mago, @Nullable Entity victima, @Nullable Block bloque, Varita varita,
+				TipoLanzamiento tipoLanzamiento, boolean ignorarPuede) {
+			if (varita == null) {
+				return;
+			}
+			if (ignorarPuede || puedeLanzar(mago, victima, !ignorarPuede, !ignorarPuede)) {
+				int ticks = mago.getTicksLived();
+				if (Accion(mago, victima, bloque, varita,
+						1 - Math.abs(getOrGenerateNumero(mago) - varita.getNumeroMagico()))) {
+					cds.put(mago.getUniqueId(), ticks);
+					mensajes.put(mago.getUniqueId(), ticks);
+				}
 			}
 		}
 
@@ -847,9 +872,18 @@ public class Varita extends ItemStack {
 		public static enum TipoLanzamiento {
 			DISTANCIA_ENTIDAD, DISTANCIA_BLOQUE, GOLPE, AREA_MAGO
 		}
+
+		public static enum TipoProyectil {
+			INVISIBLE, COHETE
+		}
 	}
 
 	public static class VaritaListener implements Listener {
+
+		@EventHandler
+		private void onPlayerJoin(PlayerJoinEvent e) {
+			e.getPlayer().discoverRecipe(new NamespacedKey(plugin, "crafteovarita"));
+		}
 
 		@EventHandler
 		private void onPlaceConVarita(BlockPlaceEvent e) {
@@ -995,9 +1029,9 @@ public class Varita extends ItemStack {
 			if (item != null) {
 				Varita varita = convertir(item);
 				if (varita != null)
-					if (varita.conjuro != null)
-						varita.conjuro.Accionar(e.getPlayer(), e.getRightClicked(), null, varita,
-								TipoLanzamiento.DISTANCIA_ENTIDAD);
+					if (varita.getConjuro() != null)
+						varita.getConjuro().Accionar(e.getPlayer(), e.getRightClicked(), null, varita,
+								TipoLanzamiento.DISTANCIA_ENTIDAD, false);
 			}
 		}
 
@@ -1014,29 +1048,61 @@ public class Varita extends ItemStack {
 					}
 					if (varita.getConjuro() != null) {
 						Conjuro c = varita.getConjuro();
-						if (c.isTipo(TipoLanzamiento.DISTANCIA_BLOQUE) || c.isTipo(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
-							// TODO ¿Cambiar por fireworks para ciertos hechizos?
-							Arrow rayo = p.launchProjectile(Arrow.class);
-							PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(rayo.getEntityId());
-							for (Player pl : Bukkit.getOnlinePlayers())
-								((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+						if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)
+								|| c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
+							if (c.puedeLanzar(p, null, true, true)) {
+								c.ponerEnCD(p);
+								if (c.isTipoProyectil(TipoProyectil.INVISIBLE)
+										|| c.isTipoProyectil(TipoProyectil.COHETE)) {
+									Arrow rayo = p.launchProjectile(Arrow.class);
+									PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
+											rayo.getEntityId());
+									for (Player pl : Bukkit.getOnlinePlayers())
+										((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
 
-							rayo.setSilent(true);
-							rayo.setGravity(false);
-							rayo.setVelocity(rayo.getVelocity().normalize().multiply(12));
-							rayo.setMetadata("jugadorAtacante", new FixedMetadataValue(plugin, p.getUniqueId()));
-							rayo.setMetadata("numeroMagicoVarita",
-									new FixedMetadataValue(plugin, varita.getNumeroMagico()));
-							rayo.setMetadata(c.getMetaNombre(), c.getMetaFlecha());
-							Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-								@Override
-								public void run() {
-									rayo.remove();
+									rayo.setSilent(true);
+									rayo.setGravity(false);
+									rayo.setVelocity(rayo.getVelocity().normalize());
+									rayo.setMetadata("jugadorAtacante",
+											new FixedMetadataValue(plugin, p.getUniqueId()));
+									rayo.setMetadata("numeroMagicoVarita",
+											new FixedMetadataValue(plugin, varita.getNumeroMagico()));
+									rayo.setMetadata(c.getMetaNombre(), c.getMetaFlecha());
+									if (c.isTipoProyectil(TipoProyectil.COHETE)) {
+										int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin,
+												new Runnable() {
+													@Override
+													public void run() {
+														if (rayo.isValid()) {
+															rayo.getLocation().getWorld().spawnParticle(
+																	Particle.REDSTONE, rayo.getLocation(), 5, 0.1, 0.1,
+																	0.1, new DustOptions(c.getColor(), 1));
+														}
+													}
+												}, 0, 1);
+
+										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+											@Override
+											public void run() {
+												rayo.remove();
+												if (id > 0) {
+													Bukkit.getScheduler().cancelTask(id);
+												}
+											}
+										}, 16);
+									} else {
+										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+											@Override
+											public void run() {
+												rayo.remove();
+											}
+										}, 16);
+									}
 								}
-							}, 2);
+							}
 						}
-						if (c.isTipo(TipoLanzamiento.AREA_MAGO)) {
-							c.Accionar(p, null, null, varita, TipoLanzamiento.AREA_MAGO);
+						if (c.isTipoLanzamiento(TipoLanzamiento.AREA_MAGO)) {
+							c.Accionar(p, null, null, varita, TipoLanzamiento.AREA_MAGO, false);
 						}
 					}
 
@@ -1059,17 +1125,17 @@ public class Varita extends ItemStack {
 //						c.Accionar(p, atacado, atacante.getMetadata("numeroMagicoVarita").get(0).asFloat(),
 //								numeroMagicoPlayer);
 						c.Accionar(p, atacado, null, convertir(p.getInventory().getItemInMainHand()),
-								TipoLanzamiento.DISTANCIA_ENTIDAD);
+								TipoLanzamiento.DISTANCIA_ENTIDAD, true);
 						break;
 					}
 			} else if (atacante instanceof Player) {
 				Player p = (Player) atacante;
 				Varita varita = convertir(p.getInventory().getItemInMainHand());
-				if (varita != null)
+				if (varita != null && varita.getConjuro()!=null)
 					for (Conjuro c : Conjuro.values())
-						if (c.isTipo(TipoLanzamiento.GOLPE) && varita.getConjuro().equals(c)) {
+						if (c.isTipoLanzamiento(TipoLanzamiento.GOLPE) && varita.getConjuro().equals(c)) {
 							e.setCancelled(true);
-							c.Accionar(p, atacado, null, varita, TipoLanzamiento.GOLPE);
+							c.Accionar(p, atacado, null, varita, TipoLanzamiento.GOLPE, false);
 						}
 			}
 		}
@@ -1084,7 +1150,7 @@ public class Varita extends ItemStack {
 						UUID jug = UUID.fromString(proyectil.getMetadata("jugadorAtacante").get(0).asString());
 						Player p = Bukkit.getPlayer(jug);
 						c.Accionar(p, null, e.getHitBlock(), convertir(p.getInventory().getItemInMainHand()),
-								TipoLanzamiento.DISTANCIA_BLOQUE);
+								TipoLanzamiento.DISTANCIA_BLOQUE, false);
 						break;
 					}
 				}

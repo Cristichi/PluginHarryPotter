@@ -141,6 +141,17 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			}
 			break;
 
+		case "puede":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+				if (varita == null) {
+					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+				} else {
+					p.sendMessage("¿Puede? "+varita.getConjuro().puedeLanzar(p, null, true, true));
+				}
+			}
+			break;
 		default:
 			bueno = false;
 			break;
