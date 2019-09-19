@@ -655,7 +655,7 @@ public class Varita extends ItemStack {
 			}
 		},
 		ARRESTO_MOMENTUM(new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
-				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 0,
+				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 120,
 				TipoProyectil.INVISIBLE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
@@ -970,11 +970,11 @@ public class Varita extends ItemStack {
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
-				if (is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
+				if (is!=null && is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
 						.has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
 					e.setCancelled(true);
 					return;
-				}
+					}
 				Varita varita = convertir(is);
 				if (varita != null) {
 					e.setCancelled(true);
