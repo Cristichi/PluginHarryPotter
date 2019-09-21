@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,8 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -92,7 +95,79 @@ public class Varita extends ItemStack {
 		keyLongitud = new NamespacedKey(plugin, "varitaLongitud");
 		keyConjuro = new NamespacedKey(plugin, "varitaHechizo");
 
-		receta = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), new Varita(new Random(0)));
+		class Glow extends Enchantment {
+			public Glow(NamespacedKey key) {
+				super(key);
+			}
+
+			@Override
+			public boolean isTreasure() {
+				return false;
+			}
+
+			@Override
+			public boolean isCursed() {
+				return false;
+			}
+
+			@Override
+			public int getStartLevel() {
+				return 1;
+			}
+
+			@Override
+			public String getName() {
+				return null;
+			}
+
+			@Override
+			public int getMaxLevel() {
+				return 1;
+			}
+
+			@Override
+			public EnchantmentTarget getItemTarget() {
+				return EnchantmentTarget.ALL;
+			}
+
+			@Override
+			public boolean conflictsWith(Enchantment other) {
+				return false;
+			}
+
+			@Override
+			public boolean canEnchantItem(ItemStack item) {
+				return true;
+			}
+		}
+
+		Varita result = new Varita();
+		ItemMeta im = result.getItemMeta();
+		im.setDisplayName(ChatColor.RESET + "" + ChatColor.LIGHT_PURPLE + "Varita Mágica");
+		ArrayList<String> lore = new ArrayList<>();
+		lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.MAGIC + result.getNumeroMagico());
+		lore.add("Varita mágica para lanzar hechizos");
+		lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.MAGIC + result.getMadera());
+		im.setLore(lore);
+
+		try {
+			Field f = Enchantment.class.getDeclaredField("acceptingNew");
+			f.setAccessible(true);
+			f.set(null, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Glow glow = new Glow(new NamespacedKey(plugin, "encantamientoGlow"));
+		try {
+			Enchantment.registerEnchantment(glow);
+		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		im.addEnchant(glow, 1, true);
+		result.setItemMeta(im);
+
+		receta = new ShapedRecipe(new NamespacedKey(plugin, "crafteovarita"), result);
 		receta.shape("FGS", "BPB", "ERE");
 		receta.setIngredient('F', Material.FERMENTED_SPIDER_EYE);
 		receta.setIngredient('G', Material.GHAST_TEAR);
@@ -970,11 +1045,11 @@ public class Varita extends ItemStack {
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
-				if (is!=null && is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
+				if (is != null && is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
 						.has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
 					e.setCancelled(true);
 					return;
-					}
+				}
 				Varita varita = convertir(is);
 				if (varita != null) {
 					e.setCancelled(true);
@@ -1041,11 +1116,6 @@ public class Varita extends ItemStack {
 				Varita varita = convertir(e.getItem());
 				if (varita != null) {
 					Player p = e.getPlayer();
-					Float numeroMagicoP = numerosMagicos.get(p.getUniqueId());
-					if (numeroMagicoP == null) {
-						numeroMagicoP = new Random().nextFloat();
-						numerosMagicos.put(p.getUniqueId(), numeroMagicoP);
-					}
 					if (varita.getConjuro() != null) {
 						Conjuro c = varita.getConjuro();
 						if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)
@@ -1086,9 +1156,8 @@ public class Varita extends ItemStack {
 											@Override
 											public void run() {
 												rayo.remove();
-												if (id > 0) {
+												if (id > 0)
 													Bukkit.getScheduler().cancelTask(id);
-												}
 											}
 										}, 20);
 									} else {
