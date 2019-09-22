@@ -82,6 +82,7 @@ public class Varita extends ItemStack {
 	private static NamespacedKey keyFlexibilidad;
 	private static NamespacedKey keyLongitud;
 	private static NamespacedKey keyConjuro;
+	private static NamespacedKey keyHack;
 
 	public static void Init(MagiaPlugin plugin) {
 		if (plugin == null || plugin.USE == null) {
@@ -94,6 +95,7 @@ public class Varita extends ItemStack {
 		keyFlexibilidad = new NamespacedKey(plugin, "varitaFlexibilidad");
 		keyLongitud = new NamespacedKey(plugin, "varitaLongitud");
 		keyConjuro = new NamespacedKey(plugin, "varitaHechizo");
+		keyHack = new NamespacedKey(plugin, "varitaHack");
 
 		class Glow extends Enchantment {
 			public Glow(NamespacedKey key) {
@@ -143,11 +145,9 @@ public class Varita extends ItemStack {
 
 		Varita result = new Varita();
 		ItemMeta im = result.getItemMeta();
-		im.setDisplayName(ChatColor.RESET + "" + ChatColor.LIGHT_PURPLE + "Varita Mágica");
+		im.setDisplayName(ChatColor.RESET + "Varita Mágica");
 		ArrayList<String> lore = new ArrayList<>();
-		lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.MAGIC + result.getNumeroMagico());
-		lore.add("Varita mágica para lanzar hechizos");
-		lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.MAGIC + result.getMadera());
+		lore.add(ChatColor.GRAY + "Varita mágica para lanzar hechizos");
 		im.setLore(lore);
 
 		try {
@@ -261,40 +261,59 @@ public class Varita extends ItemStack {
 	private Flexibilidad flexibilidad;
 	private Longitud longitud;
 	private Conjuro conjuro;
+	private boolean hack;
 
 	public Varita() {
-		this(new Random());
+//		this(new Random(), false);
+		this(null, null, null, null, null, null, null, false);
 	}
 
 	public Varita(Varita otra) {
-		this(otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud, otra.conjuro);
+		this(null, otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud, otra.conjuro,
+				otra.hack);
 	}
+//
+//	public Varita(Varita otra, Conjuro conjuro) {
+//		this(otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud, conjuro, otra.hack);
+//	}
+//
+//	public Varita(Random rng, boolean hack) {
+//		this(Nucleo.values()[rng.nextInt(Nucleo.values().length)], Madera.values()[rng.nextInt(Madera.values().length)],
+//				Flexibilidad.values()[rng.nextInt(Flexibilidad.values().length)],
+//				Longitud.values()[rng.nextInt(Longitud.values().length)], null, hack);
+//	}
+//
+//	public Varita(Nucleo nucleo, Madera madera, Flexibilidad flexibilidad, Longitud longitud,
+//			@Nullable Conjuro conjuro, boolean hack) {
+//		this(new Random().nextFloat(), nucleo, madera, flexibilidad, longitud, conjuro, hack);
+//	}
 
-	public Varita(Varita otra, Conjuro conjuro) {
-		this(otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud, conjuro);
-	}
-
-	public Varita(Random rng) {
-		this(Nucleo.values()[rng.nextInt(Nucleo.values().length)], Madera.values()[rng.nextInt(Madera.values().length)],
-				Flexibilidad.values()[rng.nextInt(Flexibilidad.values().length)],
-				Longitud.values()[rng.nextInt(Longitud.values().length)], null);
-	}
-
-	public Varita(Nucleo nucleo, Madera madera, Flexibilidad flexibilidad, Longitud longitud,
-			@Nullable Conjuro conjuro) {
-		this(new Random().nextFloat(), nucleo, madera, flexibilidad, longitud, conjuro);
-	}
-
-	public Varita(float numeroMagico, Nucleo nucleo, Madera madera, Flexibilidad flexibilidad, Longitud longitud,
-			@Nullable Conjuro conjuro) {
+	public Varita(@Nullable Long seed, @Nullable Float numeroMagico, @Nullable Nucleo nucleo, @Nullable Madera madera,
+			@Nullable Flexibilidad flexibilidad, @Nullable Longitud longitud, @Nullable Conjuro conjuro, boolean hack) {
 		super(Material.STICK);
-
-		this.numeroMagico = numeroMagico;
-		this.nucleo = nucleo;
-		this.madera = madera;
-		this.flexibilidad = flexibilidad;
-		this.longitud = longitud;
+		Random rng = seed == null ? new Random() : new Random(seed);
+		if (numeroMagico == null)
+			this.numeroMagico = new Random().nextFloat();
+		else
+			this.numeroMagico = numeroMagico;
+		if (nucleo == null)
+			this.nucleo = Nucleo.values()[rng.nextInt(Nucleo.values().length)];
+		else
+			this.nucleo = nucleo;
+		if (madera == null)
+			this.madera = Madera.values()[rng.nextInt(Madera.values().length)];
+		else
+			this.madera = madera;
+		if (flexibilidad == null)
+			this.flexibilidad = Flexibilidad.values()[rng.nextInt(Flexibilidad.values().length)];
+		else
+			this.flexibilidad = flexibilidad;
+		if (longitud == null)
+			this.longitud = Longitud.values()[rng.nextInt(Longitud.values().length)];
+		else
+			this.longitud = longitud;
 		this.conjuro = conjuro;
+		this.hack = hack;
 
 		recagarDatos();
 	}
@@ -309,6 +328,7 @@ public class Varita extends ItemStack {
 			return null;
 
 		String nucleo = null, madera, flexibilidad, longitud, conjuro;
+		boolean hack;
 		Float numeroMagico;
 		try {
 			if (posibleVarita.hasItemMeta() && posibleVarita.getItemMeta().getPersistentDataContainer()
@@ -320,12 +340,16 @@ public class Varita extends ItemStack {
 				flexibilidad = data.get(keyFlexibilidad, PersistentDataType.STRING);
 				longitud = data.get(keyLongitud, PersistentDataType.STRING);
 				conjuro = data.get(keyConjuro, PersistentDataType.STRING);
-				return new Varita(numeroMagico, Nucleo.valueOf(nucleo), Madera.valueOf(madera),
+				hack = Boolean.parseBoolean(data.get(keyHack, PersistentDataType.STRING));
+				return new Varita(null, numeroMagico, Nucleo.valueOf(nucleo), Madera.valueOf(madera),
 						Flexibilidad.valueOf(flexibilidad), Longitud.valueOf(longitud),
-						conjuro == null ? null : Conjuro.valueOf(conjuro));
+						conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
+//				return new Varita(numeroMagico, Nucleo.valueOf(nucleo), Madera.valueOf(madera),
+//						Flexibilidad.valueOf(flexibilidad), Longitud.valueOf(longitud),
+//						conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
 			}
 		} catch (Exception e) {
-			System.err.println("La varita tiene valores antiguos y ya no es válida.");
+			System.err.println("La varita no es válida, ¿ha cambiado algo en alguna actualización del plugin?.");
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
@@ -335,22 +359,29 @@ public class Varita extends ItemStack {
 	public void recagarDatos() {
 		ItemMeta im = getItemMeta();
 		im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString());
-		ArrayList<String> arrayList = new ArrayList<>();
+		ArrayList<String> lore = new ArrayList<>();
 		if (conjuro != null) {
 			im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString() + " (" + conjuro.getChatColor()
 					+ conjuro.toString() + ChatColor.RESET + ")");
-			arrayList.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
+			lore.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
 		}
-		arrayList.add(ChatColor.GRAY + "Núcleo: " + nucleo.toString());
-		arrayList.add(ChatColor.GRAY + "Madera: " + madera.toString());
-		arrayList.add(ChatColor.GRAY + "Flexibilidad: " + flexibilidad.toString());
-		arrayList.add(ChatColor.GRAY + "Longitud: " + longitud.toString());
-		im.setLore(arrayList);
+		lore.add(ChatColor.GRAY + "Núcleo: " + nucleo.toString());
+		lore.add(ChatColor.GRAY + "Madera: " + madera.toString());
+		lore.add(ChatColor.GRAY + "Flexibilidad: " + flexibilidad.toString());
+		lore.add(ChatColor.GRAY + "Longitud: " + longitud.toString());
+		if (isHack()) {
+			lore.add(ChatColor.BLACK.toString() + ChatColor.MAGIC
+					+ "Error732: La varita no parece funcionar de la forma normal.");
+		} else {
+			lore.add(ChatColor.GRAY + "La varita está en buen estado.");
+		}
+		im.setLore(lore);
 		im.getPersistentDataContainer().set(keyNumeroMagico, PersistentDataType.FLOAT, numeroMagico);
 		im.getPersistentDataContainer().set(keyNucleo, PersistentDataType.STRING, nucleo.name());
 		im.getPersistentDataContainer().set(keyMadera, PersistentDataType.STRING, madera.name());
 		im.getPersistentDataContainer().set(keyFlexibilidad, PersistentDataType.STRING, flexibilidad.name());
 		im.getPersistentDataContainer().set(keyLongitud, PersistentDataType.STRING, longitud.name());
+		im.getPersistentDataContainer().set(keyHack, PersistentDataType.STRING, Boolean.toString(hack));
 		if (conjuro == null)
 			im.getPersistentDataContainer().remove(keyConjuro);
 		else
@@ -397,13 +428,19 @@ public class Varita extends ItemStack {
 		return conjuro;
 	}
 
+	public void setHack(boolean hack) {
+		this.hack = hack;
+		recagarDatos();
+	}
+
+	public boolean isHack() {
+		return hack;
+	}
+
 	@Override
 	public String toString() {
-		return "Varita [numeroMagico=" + numeroMagico + ", " + (nucleo != null ? "nucleo=" + nucleo + ", " : "")
-				+ (madera != null ? "madera=" + madera + ", " : "")
-				+ (flexibilidad != null ? "flexibilidad=" + flexibilidad + ", " : "")
-				+ (longitud != null ? "longitud=" + longitud + ", " : "")
-				+ (conjuro != null ? "conjuro=" + conjuro : "") + "]";
+		return "Varita [numeroMagico=" + numeroMagico + ", nucleo=" + nucleo + ", madera=" + madera + ", flexibilidad="
+				+ flexibilidad + ", longitud=" + longitud + ", conjuro=" + conjuro + ", hack=" + hack + "]";
 	}
 
 	public static enum Nucleo {
@@ -555,6 +592,14 @@ public class Varita extends ItemStack {
 						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, TipoProyectil.COHETE) {
+
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr + 0.8 : cdr, avisar,
+						palabrasMagicas);
+			}
+
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof LivingEntity) {
@@ -576,6 +621,13 @@ public class Varita extends ItemStack {
 		},
 		EXPELLIARMUS(Material.RED_DYE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "",
 				Color.RED, 300, TipoProyectil.COHETE) {
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr - 0.8 : cdr, avisar,
+						palabrasMagicas);
+			}
+
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita, float potencia) {
 				if (objetivo instanceof HumanEntity) {
@@ -748,21 +800,21 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		};
-		private String nombre;
-		private MaterialChoice ingredientes;
-		private TiposLanzamiento tiposLanzamiento;
-		private TipoProyectil tipoProyectil;
-		private String chatColor;
-		private Color color;
-		private int cooldownTicks;
+		protected String nombre;
+		protected MaterialChoice ingredientes;
+		protected TiposLanzamiento tiposLanzamiento;
+		protected TipoProyectil tipoProyectil;
+		protected String chatColor;
+		protected Color color;
+		protected int cooldownTicks;
 		private String palabras;
 		private String metaFlechaNombre;
 		private FixedMetadataValue metaFlecha;
-		private HashMap<UUID, Integer> cds = new HashMap<>();
+		protected HashMap<UUID, Integer> cds = new HashMap<>();
 		private HashMap<UUID, Integer> mensajes = new HashMap<>();
 		private HashMap<UUID, Integer> mensajesPalabrasMagicas = new HashMap<>();
-		private static int cdMensajeCd = 20;
-		private static int cdMensajePalabrasMagicas = 40;
+		protected static int cdMensajeCd = 20;
+		protected static int cdMensajePalabrasMagicas = 40;
 
 		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
 				int cooldownTicks, TipoProyectil tipoProyectil) {
@@ -875,13 +927,14 @@ public class Varita extends ItemStack {
 			return false;
 		}
 
-		public boolean puedeLanzar(Player mago, @Nullable Entity victima, boolean avisar, boolean palabrasMagicas) {
+		public boolean puedeLanzar(Player mago, @Nullable Entity victima, Varita varita, double cdr, boolean avisar,
+				boolean palabrasMagicas) {
 			boolean puede = true;
 			int ticks = mago.getTicksLived();
 			if (mago.hasPermission(plugin.USE)) {
 				if (cooldownTicks > 0) {
 					if (cds.containsKey(mago.getUniqueId())) {
-						int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks;
+						int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks - (int) (cooldownTicks * cdr);
 						if (ticksObj > ticks) {
 							puede = false;
 							if (avisar) {
@@ -917,13 +970,12 @@ public class Varita extends ItemStack {
 			if (varita == null) {
 				return;
 			}
-			if (ignorarPuede || puedeLanzar(mago, victima, !ignorarPuede, !ignorarPuede)) {
+			if (ignorarPuede || puedeLanzar(mago, victima, varita, 0, !ignorarPuede, !ignorarPuede)) {
 				int ticks = mago.getTicksLived();
-				if (Accion(mago, victima, bloque, varita,
-						1 - Math.abs(getOrGenerateNumero(mago) - varita.getNumeroMagico()))) {
-					cds.put(mago.getUniqueId(), ticks);
-					mensajes.put(mago.getUniqueId(), ticks);
-				}
+				cds.put(mago.getUniqueId(), ticks);
+				mensajes.put(mago.getUniqueId(), ticks);
+				Accion(mago, victima, bloque, varita,
+						1 - Math.abs(getOrGenerateNumero(mago) - varita.getNumeroMagico()));
 			}
 		}
 
@@ -1017,7 +1069,9 @@ public class Varita extends ItemStack {
 				if (v0 != null) {
 					for (Conjuro c : Conjuro.values()) {
 						if (c.getIngredientes().test(ingrediente1)) {
-							e.getInventory().setResult(new Varita(v0, c));
+							Varita nueva = new Varita(v0);
+							nueva.cambiarConjuro(c);
+							e.getInventory().setResult(nueva);
 							break;
 						}
 					}
@@ -1120,7 +1174,7 @@ public class Varita extends ItemStack {
 						Conjuro c = varita.getConjuro();
 						if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)
 								|| c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
-							if (c.puedeLanzar(p, null, true, true)) {
+							if (c.puedeLanzar(p, null, varita, 0, true, true)) {
 								c.ponerEnCD(p);
 								if (c.isTipoProyectil(TipoProyectil.INVISIBLE)
 										|| c.isTipoProyectil(TipoProyectil.COHETE)) {

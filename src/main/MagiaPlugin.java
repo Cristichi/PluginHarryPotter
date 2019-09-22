@@ -141,17 +141,25 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			}
 			break;
 
-		case "puede":
+		case "oscura":
+		case "oscuro":
+		case "malo":
+		case "maloso":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
 				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
 				if (varita == null) {
-					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
-				} else {
-					p.sendMessage("¿Puede? "+varita.getConjuro().puedeLanzar(p, null, true, true));
+					p.sendMessage(header + "Debe usted tener una varita en su mano para comprobar su sinergia con ella.");
+				} else if (varita.isHack()){
+					p.sendMessage(header+"La varita ya está tornada a las artes oscuras.");
+				}else {
+					varita.setHack(true);
+					p.sendMessage(header+"La varita está ahora "+ChatColor.BLACK+"a merced de tu oscuridad"+textColor+".");
+					p.getInventory().setItemInMainHand(varita);
 				}
 			}
 			break;
+			
 		default:
 			bueno = false;
 			break;
