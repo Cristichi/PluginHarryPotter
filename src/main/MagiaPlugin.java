@@ -2,6 +2,7 @@ package main;
 
 import java.io.File;
 import java.nio.file.FileSystemException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,11 +13,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftInventoryCustom;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -39,6 +37,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public final ChatColor errorColor = ChatColor.DARK_RED;
 	public final String header = mainColor + "[" + desc.getName() + "] " + textColor;
 
+	private ArrayList<Ayuda> help;
+
 	@Override
 	public void onEnable() {
 		Varita.Init(this);
@@ -47,6 +47,10 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		} catch (FileSystemException e) {
 			e.printStackTrace();
 		}
+		help = new ArrayList<>();
+		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
+		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
+		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
 		getServer().getPluginManager().registerEvents(new Varita.VaritaListener(), this);
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
@@ -67,9 +71,12 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		boolean bueno = true;
 		switch (args[0]) {
 		case "help":
-			sender.sendMessage(header + "Sin ayuda " + accentColor + ":D");
+			sender.sendMessage(header + "Comandos:");
+			for (Ayuda ayuda : help) {
+				sender.sendMessage(ayuda.toString());
+			}
 			break;
-		case "dame":
+		case "give":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
 //				p.getInventory().addItem(new Varita(Nucleo.PLUMA_DE_FENIX, Madera.ABEDUL, Flexibilidad.MUY_FLEXIBLE, Longitud.MUY_LARGA, Conjuro.AVADA_KEDAVRA));
@@ -78,8 +85,28 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				p.sendMessage("<Ollivanders> De nada, feo");
 			}
 			break;
+		case "uso":
+			if (sender instanceof Player) {
+				sender.sendMessage(header + "Para lanzar un " + accentColor + "Conjuro" + textColor
+						+ " primero debes preparar la varita con ese " + accentColor + "Conjuro" + textColor + ". "
+						+ "Para ello, coloca tu varita en la mano principal y el ingrediente del " + accentColor
+						+ "Conjuro" + textColor + " en la otra, " + "y después pulsa " + accentColor + "F" + textColor
+						+ " para intercambiarlos. Una vez cargado el " + accentColor + "Conjuro" + textColor
+						+ " en tu varita, " + "puedes lanzarlo tantas veces como quieras o volver a cambiarlo de "
+						+ accentColor + "Conjuro" + textColor + ".");
+				sender.sendMessage("\n" + header + "Para ver qué ingrediente necesitas para preparar un " + accentColor
+						+ "Conjuro" + textColor + ", recuerda usar /" + accentColor + label + " conjuros" + textColor);
+				sender.sendMessage("\n" + header + "Una vez preparado tu " + accentColor + "Conjuro" + textColor + ", "
+						+ "para lanzarlo sólo debes hacer click derecho con tu varita en dirección a un mob o jugador. "
+						+ "Recuerda que algunos " + accentColor + "Conjuros" + textColor
+						+ " podrían lanzarse de una manera diferente.");
+			} else {
+				sender.sendMessage(header + "Lo siento, pero tú no puedes usar una varita");
+			}
+			break;
 		case "conjuros":
 		case "encantamientos":
+		case "ingredientes":
 		case "hechizos":
 			String conjuros = header + "Conjuros y sus ingredientes:";
 			for (Conjuro c : Conjuro.values()) {
@@ -117,49 +144,51 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				p.openInventory(inv);
 			}
 			break;
-		case "test":
-			if (sender instanceof Player) {
-				Player p = (Player) sender;
-				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-				if (varita == null) {
-					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
-				} else {
-					float numP = Varita.getOrGenerateNumero(p);
-					p.sendMessage(header + "Su varita y usted están compenetrados al "
-							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
-				}
-			}
-			break;
-		case "recargarinfo":
-			if (sender instanceof Player) {
-				Player p = (Player) sender;
-				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-				if (varita != null) {
-					varita.recagarDatos();
-					p.getInventory().setItemInMainHand(varita);
-				}
-			}
-			break;
+//		case "sinergia":
+//			if (sender instanceof Player) {
+//				Player p = (Player) sender;
+//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+//				if (varita == null) {
+//					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+//				} else {
+//					float numP = Varita.getOrGenerateNumero(p);
+//					p.sendMessage(header + "Su varita y usted están compenetrados al "
+//							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
+//				}
+//			}
+//			break;
+//		case "recargarinfo":
+//			if (sender instanceof Player) {
+//				Player p = (Player) sender;
+//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+//				if (varita != null) {
+//					varita.recagarDatos();
+//					p.getInventory().setItemInMainHand(varita);
+//				}
+//			}
+//			break;
+//
+//		case "oscura":
+//		case "oscuro":
+//		case "malo":
+//		case "maloso":
+//			if (sender instanceof Player) {
+//				Player p = (Player) sender;
+//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+//				if (varita == null) {
+//					p.sendMessage(
+//							header + "Debe usted tener una varita en su mano para comprobar su sinergia con ella.");
+//				} else if (varita.isHack()) {
+//					p.sendMessage(header + "La varita ya está tornada a las artes oscuras.");
+//				} else {
+//					varita.setHack(true);
+//					p.sendMessage(header + "La varita está ahora " + ChatColor.BLACK + "a merced de tu oscuridad"
+//							+ textColor + ".");
+//					p.getInventory().setItemInMainHand(varita);
+//				}
+//			}
+//			break;
 
-		case "oscura":
-		case "oscuro":
-		case "malo":
-		case "maloso":
-			if (sender instanceof Player) {
-				Player p = (Player) sender;
-				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-				if (varita == null) {
-					p.sendMessage(header + "Debe usted tener una varita en su mano para comprobar su sinergia con ella.");
-				} else if (varita.isHack()){
-					p.sendMessage(header+"La varita ya está tornada a las artes oscuras.");
-				}else {
-					varita.setHack(true);
-					p.sendMessage(header+"La varita está ahora "+ChatColor.BLACK+"a merced de tu oscuridad"+textColor+".");
-					p.getInventory().setItemInMainHand(varita);
-				}
-			}
-			break;
-			
 		default:
 			bueno = false;
 			break;
@@ -167,13 +196,34 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		return bueno;
 	}
 
-	@EventHandler
-	private void onCrafteo(InventoryClickEvent e) {
-		Inventory inv = e.getInventory();
-		if (inv instanceof CraftInventoryCustom) {
-			if (Varita.convertir(inv.getItem(0)) != null) {
-				e.setCancelled(true);
-			}
+	class Ayuda {
+		private String comando;
+		private String descripcion;
+
+		public Ayuda(String comando, String descripcion) {
+			this.comando = comando;
+			this.descripcion = descripcion;
+		}
+
+		public String getComando() {
+			return comando;
+		}
+
+		public void setComando(String comando) {
+			this.comando = comando;
+		}
+
+		public String getDescripcion() {
+			return descripcion;
+		}
+
+		public void setDescripcion(String descripcion) {
+			this.descripcion = descripcion;
+		}
+
+		@Override
+		public String toString() {
+			return textColor + " /" + accentColor + "magia " + comando + textColor + ": " + descripcion + ".";
 		}
 	}
 }

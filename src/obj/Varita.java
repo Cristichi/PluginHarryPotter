@@ -28,15 +28,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftInventoryCustom;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -56,6 +55,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
@@ -182,9 +182,10 @@ public class Varita extends ItemStack {
 		receta.setIngredient('R', Material.FIREWORK_ROCKET);
 		Bukkit.addRecipe(receta);
 
-		for(Player p : Bukkit.getOnlinePlayers()) {
+		for (Player p : Bukkit.getOnlinePlayers()) {
 			p.discoverRecipe(keyReceta);
 		}
+
 		Varita.numerosMagicos = new HashMap<>();
 	}
 
@@ -657,52 +658,17 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
-		WINGARDIUM_LEVIOSA(Material.FEATHER,
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.DISTANCIA_BLOQUE),
+		WINGARDIUM_LEVIOSA(Material.FEATHER, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
 				ChatColor.GRAY + "", Color.GRAY, 0, TipoProyectil.INVISIBLE) {
-			String key = "wingardiumBloque";
-
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
-				if (tipoLanzamiento.equals(TipoLanzamiento.DISTANCIA_BLOQUE) && bloque != null) {
-					World mundo = bloque.getWorld();
-					FallingBlock fallingBlock = mundo.spawnFallingBlock(bloque.getLocation().add(0.5, 0.5, 0.5),
-							bloque.getBlockData());
-					fallingBlock.setGravity(false);
-					fallingBlock.setVelocity(new Vector(0, 0.1, 0));
-					int id = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
-						@Override
-						public void run() {
-							mundo.getBlockAt(fallingBlock.getLocation()).setBlockData(fallingBlock.getBlockData());
-							fallingBlock.remove();
-						}
-					}, (long) (8 * potencia));
-					fallingBlock.setMetadata(key, new FixedMetadataValue(plugin, id));
-				}
 				if (tipoLanzamiento.equals(TipoLanzamiento.DISTANCIA_ENTIDAD) && objetivo != null) {
 					if (objetivo instanceof LivingEntity) {
 						int ticks = (int) (8 * potencia) + 1;
 						((LivingEntity) objetivo)
 								.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1), true);
 						return true;
-					} else if (objetivo instanceof FallingBlock) {
-						FallingBlock fallingBlock = (FallingBlock) objetivo;
-						if (objetivo.hasMetadata(key)) {
-							int meta = objetivo.getMetadata(key).get(0).asInt();
-							Bukkit.getScheduler().cancelTask(meta);
-							int id = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
-								@Override
-								public void run() {
-									fallingBlock.getWorld().getBlockAt(fallingBlock.getLocation())
-											.setBlockData(fallingBlock.getBlockData());
-									fallingBlock.remove();
-								}
-							}, (long) (8 * potencia));
-							fallingBlock.setMetadata(key, new FixedMetadataValue(plugin, id));
-						}
 					}
 				}
 				return false;
@@ -829,18 +795,18 @@ public class Varita extends ItemStack {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
-				boolean gravitada = true;
-				objetivo.setGravity(false);
+//				boolean gravitada = true;
+//				objetivo.setGravity(false);
 				Vector pos = objetivo.getLocation().toVector();
 				Vector target = mago.getLocation().toVector();
 				Vector velocity = pos.subtract(target);
-				objetivo.setVelocity(velocity.normalize().multiply(3 * potencia));
-				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-					@Override
-					public void run() {
-						objetivo.setGravity(gravitada);
-					}
-				}, (long) (60 * potencia));
+				objetivo.setVelocity(velocity.normalize().multiply(6 * potencia));
+//				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+//					@Override
+//					public void run() {
+//						objetivo.setGravity(gravitada);
+//					}
+//				}, (long) (60 * potencia));
 				resetTiempoPalabras(mago);
 				return true;
 			}
@@ -1072,7 +1038,20 @@ public class Varita extends ItemStack {
 
 		@EventHandler
 		private void onPlayerJoin(PlayerJoinEvent e) {
-			e.getPlayer().discoverRecipe(new NamespacedKey(plugin, "crafteovarita"));
+			Player p = e.getPlayer();
+			p.discoverRecipe(keyReceta);
+			if (!numerosMagicos.containsKey(p.getUniqueId())) {
+				Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
+
+					@Override
+					public void run() {
+						p.getInventory().addItem(new Varita());
+						p.sendMessage(plugin.header
+								+ "Disfruta de tu primera varita. Usa /magia help para más información sobre tu varita y tú.");
+						getOrGenerateNumero(p);
+					}
+				}, 20);
+			}
 		}
 
 		@EventHandler
@@ -1140,7 +1119,16 @@ public class Varita extends ItemStack {
 						}
 					}
 				}
-			} else if (e.getRecipe() != null && e.getRecipe().getResult() != null) {
+			} else if (e.getRecipe() == null) {
+				if (arrayList.size() == 1) {
+					Varita varitaIngrediente = convertir(arrayList.get(0));
+					if (varitaIngrediente != null && varitaIngrediente.getConjuro() != null) {
+						Varita varita2 = new Varita(varitaIngrediente);
+						varita2.cambiarConjuro(null);
+						e.getInventory().setResult(varita2);
+					}
+				}
+			} else if (e.getRecipe().getResult() != null) {
 				Varita varita = convertir(e.getRecipe().getResult());
 				if (varita != null) {
 					if (!e.getView().getPlayer().hasPermission(plugin.CREATE)) {
@@ -1159,7 +1147,19 @@ public class Varita extends ItemStack {
 		}
 
 		@EventHandler
+		private void onClickAlVerReceta(InventoryClickEvent e) {
+		}
+
+		@EventHandler
 		private void onCrafteo(InventoryClickEvent e) {
+			Inventory inventory = e.getInventory();
+			if (inventory instanceof CraftInventoryCustom) {
+				if (Varita.convertir(inventory.getItem(0)) != null) {
+					e.setCancelled(true);
+					return;
+				}
+			}
+
 			if (e.getSlotType().equals(SlotType.RESULT) && e.getClickedInventory() instanceof CraftingInventory) {
 				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
 				ItemStack is = inv.getResult();
@@ -1298,8 +1298,8 @@ public class Varita extends ItemStack {
 						// Conjuro nulo
 						BlockData datos = null;
 						float potencia = varita.getPotencia(mago);
-						Particle particula = Particle.FIREWORKS_SPARK;
-						double variacion = 2*potencia+1;
+						Particle particula = varita.isHack() ? Particle.DRAGON_BREATH : Particle.FIREWORKS_SPARK;
+						double variacion = 2 * potencia + 1;
 						if (potencia < 0.1) {
 							particula = Particle.BLOCK_DUST;
 							datos = Material.COAL_BLOCK.createBlockData();
