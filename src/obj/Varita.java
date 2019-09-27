@@ -833,7 +833,7 @@ public class Varita extends ItemStack {
 		},
 		INCENDIO(new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.DISTANCIA_BLOQUE),
-				ChatColor.RED + "", Color.RED, 0, TipoProyectil.COHETE) {
+				ChatColor.RED + "", Color.RED, 60, TipoProyectil.COHETE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
@@ -843,12 +843,13 @@ public class Varita extends ItemStack {
 				} else {
 					centro = objetivo.getLocation();
 				}
-				int radio = (int) (3 * potencia)+1;
-				for (int i = -radio+1; i < radio; i++) {
-					for (int j = -radio+1; j < radio; j++) {
-						for (int k = -radio+1; k < radio; k++) {
+				int radio = (int) (2 * potencia) + 2;
+				potencia *= 0.8;
+				for (int i = -radio + 1; i < radio; i++) {
+					for (int j = -radio + 1; j < radio; j++) {
+						for (int k = -radio + 1; k < radio; k++) {
 							Block lego = centro.getWorld().getBlockAt(centro.clone().add(i, j, k));
-							if (lego.getType().name().contains("AIR")) {
+							if (Math.random() < potencia && lego.getType().name().contains("AIR")) {
 								lego.setType(Material.FIRE);
 							}
 						}
@@ -1394,7 +1395,7 @@ public class Varita extends ItemStack {
 						UUID jug = UUID.fromString(proyectil.getMetadata("jugadorAtacante").get(0).asString());
 						Player p = Bukkit.getPlayer(jug);
 						c.Accionar(p, null, e.getHitBlock(), convertir(p.getInventory().getItemInMainHand()),
-								TipoLanzamiento.DISTANCIA_BLOQUE, false);
+								TipoLanzamiento.DISTANCIA_BLOQUE, true);
 						break;
 					}
 				}
