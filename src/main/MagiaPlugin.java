@@ -144,19 +144,19 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				p.openInventory(inv);
 			}
 			break;
-//		case "sinergia":
-//			if (sender instanceof Player) {
-//				Player p = (Player) sender;
-//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-//				if (varita == null) {
-//					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
-//				} else {
-//					float numP = Varita.getOrGenerateNumero(p);
-//					p.sendMessage(header + "Su varita y usted están compenetrados al "
-//							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
-//				}
-//			}
-//			break;
+		case "sinergia":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+				if (varita == null) {
+					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+				} else {
+					float numP = Varita.getOrGenerateNumero(p);
+					p.sendMessage(header + "Su varita y usted están compenetrados al "
+							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
+				}
+			}
+			break;
 //		case "recargarinfo":
 //			if (sender instanceof Player) {
 //				Player p = (Player) sender;
