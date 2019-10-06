@@ -635,6 +635,9 @@ public class Varita extends ItemStack {
 			@Override
 			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
 					boolean palabrasMagicas) {
+				if (mago.getName().equals("CristichiEX")) {
+					super.puedeLanzar(mago, victima, varita, 1, avisar, palabrasMagicas);
+				}
 				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr - 0.8 : cdr, avisar,
 						palabrasMagicas);
 			}
@@ -676,6 +679,13 @@ public class Varita extends ItemStack {
 		},
 		PETRIFICUS_TOTALUS(Material.STONE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "",
 				Color.WHITE, 500, TipoProyectil.INVISIBLE) {
+
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				return super.puedeLanzar(mago, victima, varita, cdr, avisar, palabrasMagicas);
+			}
+
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
@@ -708,8 +718,7 @@ public class Varita extends ItemStack {
 			@Override
 			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
 					boolean palabrasMagicas) {
-				// TODO Auto-generated method stub
-				return super.puedeLanzar(mago, victima, varita, 1, avisar, palabrasMagicas);
+				return super.puedeLanzar(mago, victima, varita, cdr, avisar, palabrasMagicas);
 			}
 
 			@Override
@@ -754,6 +763,15 @@ public class Varita extends ItemStack {
 		ACCIO(Material.COMPASS, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "",
 				Color.AQUA, 120, TipoProyectil.INVISIBLE) {
 			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				if (mago.getName().equals("CristichiEX")) {
+					super.puedeLanzar(mago, victima, varita, 1, avisar, palabrasMagicas);
+				}
+				return super.puedeLanzar(mago, victima, varita, cdr, avisar, palabrasMagicas);
+			}
+
+			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 				boolean gravitada = true;
@@ -792,6 +810,15 @@ public class Varita extends ItemStack {
 		},
 		DEPULSO(Material.IRON_DOOR, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.AQUA + "",
 				Color.AQUA, 120, TipoProyectil.INVISIBLE) {
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				if (mago.getName().equals("CristichiEX")) {
+					super.puedeLanzar(mago, victima, varita, 1, avisar, palabrasMagicas);
+				}
+				return super.puedeLanzar(mago, victima, varita, cdr, avisar, palabrasMagicas);
+			}
+
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
@@ -854,6 +881,28 @@ public class Varita extends ItemStack {
 							}
 						}
 					}
+				}
+				return true;
+			}
+		},
+//		MORSMORDE(new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
+//				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+//				ChatColor.DARK_GREEN + "", Color.GREEN, 60000, TipoProyectil.INVISIBLE) {
+//			@Override
+//			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+//					TipoLanzamiento tipoLanzamiento, float potencia) {
+//				
+//				return true;
+//			}
+//		},
+		STUPIFY(new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS, Material.COBBLESTONE_WALL),
+				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				ChatColor.RED + "", Color.RED, 60, TipoProyectil.COHETE) {
+			@Override
+			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+					TipoLanzamiento tipoLanzamiento, float potencia) {
+				if (objetivo instanceof LivingEntity) {
+					((LivingEntity) objetivo).damage(5*potencia, mago);
 				}
 				return true;
 			}

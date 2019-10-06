@@ -47,6 +47,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		} catch (FileSystemException e) {
 			e.printStackTrace();
 		}
+		
 		help = new ArrayList<>();
 		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));

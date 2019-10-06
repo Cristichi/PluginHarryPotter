@@ -1,6 +1,6 @@
 name: MagiaBorras
 main: main.MagiaPlugin
-version: 0.115
+version: 0.2
 api-version: 1.13
 commands:
   magia:
