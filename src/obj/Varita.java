@@ -15,6 +15,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -22,20 +23,26 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.EntityEffect;
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftInventoryCustom;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -54,12 +61,14 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -69,6 +78,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import main.MagiaPlugin;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.event.SpawnReason;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.npc.CitizensNPC;
+import net.citizensnpcs.npc.skin.SkinnableEntity;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
 import obj.Varita.Conjuro.TipoProyectil;
@@ -78,6 +92,8 @@ public class Varita extends ItemStack {
 
 	private static ShapedRecipe receta;
 	private static NamespacedKey keyReceta;
+
+	private static NPC ollivander;
 
 	private static MagiaPlugin plugin;
 	private static NamespacedKey keyNumeroMagico;
@@ -187,10 +203,35 @@ public class Varita extends ItemStack {
 		}
 
 		Varita.numerosMagicos = new HashMap<>();
+
+		ollivander = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Ollivander");
+		ollivander.data().set(CitizensNPC.PLAYER_SKIN_TEXTURE_PROPERTIES_METADATA, "CristichiEX");
+
+		plugin.getServer().getPluginManager().registerEvents(new Varita.VaritaListener(), plugin);
+	}
+	
+	public static void setOllivander(NPC ollivander) {
+		Varita.ollivander = ollivander;
+	}
+	
+	public static NPC getOllivander() {
+		return ollivander;
 	}
 
 	public static ShapedRecipe getReceta() {
 		return receta;
+	}
+
+	public static void moverOllivanders(Location loc) {
+		if (ollivander.isSpawned()) {
+			ollivander.teleport(loc, TeleportCause.COMMAND);
+	        Entity npcEntity = ollivander.getEntity();
+			if (npcEntity instanceof SkinnableEntity) {
+	            ((SkinnableEntity) npcEntity).getSkinTracker().notifySkinChange(true);
+	        }
+		} else {
+			ollivander.spawn(loc, SpawnReason.COMMAND);
+		}
 	}
 
 	public static float getOrGenerateNumero(Player player) {
@@ -598,8 +639,8 @@ public class Varita extends ItemStack {
 
 	public static enum Conjuro {
 		AVADA_KEDAVRA(
-				new MaterialChoice(Material.CREEPER_HEAD, Material.DRAGON_HEAD, Material.PLAYER_HEAD,
-						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
+				new MaterialChoice(Material.DRAGON_HEAD, Material.PLAYER_HEAD, Material.ZOMBIE_HEAD,
+						Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, TipoProyectil.COHETE) {
 
@@ -885,24 +926,82 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-//		MORSMORDE(new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
-//				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
-//				ChatColor.DARK_GREEN + "", Color.GREEN, 60000, TipoProyectil.INVISIBLE) {
-//			@Override
-//			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
-//					TipoLanzamiento tipoLanzamiento, float potencia) {
-//				
-//				return true;
-//			}
-//		},
-		STUPIFY(new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS, Material.COBBLESTONE_WALL),
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
-				ChatColor.RED + "", Color.RED, 60, TipoProyectil.COHETE) {
+		MORSMORDRE(new MaterialChoice(Material.CREEPER_HEAD, Material.FIRE_CHARGE),
+				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.DARK_GREEN + "", Color.GREEN, 60000, null,
+				TipoProyectil.INVISIBLE) {
+
+			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+					TipoLanzamiento tipoLanzamiento, float potencia) {
+				Location loc = mago.getLocation().add(0, 50, 0);
+				World mundo = loc.getWorld();
+				ArmorStand vfx = (ArmorStand) mundo.spawnEntity(loc, EntityType.ARMOR_STAND);
+				vfx.setVisible(false);
+				vfx.setCollidable(false);
+				vfx.setInvulnerable(true);
+				int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+					boolean alt = true;
+
+					@Override
+					public void run() {
+						int lados = alt ? 2 : 4;
+						int alto = alt ? 3 : -5;
+						Location loc2 = loc.clone().add(Math.random() * lados * 2, Math.random() * alto * 2,
+								Math.random() * lados * 2);
+						Firework fw = (Firework) mundo.spawnEntity(loc2, EntityType.FIREWORK);
+						FireworkMeta fwm = fw.getFireworkMeta();
+						FireworkEffect effect = FireworkEffect.builder()
+								.withColor(alt ? Color.GREEN : Math.random() > 0.5 ? Color.GREEN : Color.BLACK)
+								.withFade(Color.BLACK).with(alt ? Type.CREEPER : Type.BURST).trail(false).flicker(false)
+								.build();
+						fwm.addEffect(effect);
+						fw.setFireworkMeta(fwm);
+						fw.setSilent(true);
+						fw.detonate();
+						alt = !alt;
+					}
+				}, 0, 1);
+				Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
+					@Override
+					public void run() {
+						Bukkit.getScheduler().cancelTask(id);
+						vfx.remove();
+					}
+				}, getCooldownTicks());
+				vfx.getPersistentDataContainer().set(new NamespacedKey(plugin, "efectoMorsmordre"),
+						PersistentDataType.INTEGER, id);
+				return true;
+			}
+		},
+		FINITE_INCANTATEM(new MaterialChoice(Material.TORCH), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+				ChatColor.WHITE + "", Color.WHITE, 0, TipoProyectil.INVISIBLE) {
+			NamespacedKey key = new NamespacedKey(plugin, "efectoMorsmordre");
+
+			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+					TipoLanzamiento tipoLanzamiento, float potencia) {
+				Collection<Entity> armorStands = mago.getWorld().getNearbyEntities(mago.getLocation(), 50, 15, 50,
+						new Predicate<Entity>() {
+							@Override
+							public boolean test(Entity t) {
+								return t instanceof ArmorStand
+										&& t.getPersistentDataContainer().has(key, PersistentDataType.INTEGER);
+							}
+						});
+				for (Entity as : armorStands) {
+					Bukkit.getScheduler()
+							.cancelTask(as.getPersistentDataContainer().get(key, PersistentDataType.INTEGER));
+					as.remove();
+				}
+				return true;
+			}
+		},
+		STUPIFY(new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
+				Material.COBBLESTONE_WALL), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "",
+				Color.RED, 60, TipoProyectil.COHETE) {
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 				if (objetivo instanceof LivingEntity) {
-					((LivingEntity) objetivo).damage(5*potencia, mago);
+					((LivingEntity) objetivo).damage(5 * potencia, mago);
 				}
 				return true;
 			}
@@ -935,7 +1034,7 @@ public class Varita extends ItemStack {
 		}
 
 		private Conjuro(Material ingrediente, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
-				int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
+				int cooldownTicks, @Nullable String palabrasMagicas, TipoProyectil tipoProyectil) {
 			this(new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks, palabrasMagicas,
 					tipoProyectil);
 		}
@@ -1009,6 +1108,9 @@ public class Varita extends ItemStack {
 		}
 
 		public String getPalabrasMagicas(String atacante) {
+			if (palabras == null) {
+				return null;
+			}
 			return palabras.replace("{nombre}", nombre).replace("{chatcolor}", chatColor).replace("{atacante}",
 					atacante);
 		}
@@ -1062,7 +1164,7 @@ public class Varita extends ItemStack {
 				if (avisar)
 					mago.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
 			}
-			if (palabrasMagicas && puede) {
+			if (palabras != null && palabrasMagicas && puede) {
 				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
 						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
 					mago.chat(getPalabrasMagicas(mago.getCustomName() == null ? mago.getName() : mago.getCustomName()));
@@ -1223,10 +1325,6 @@ public class Varita extends ItemStack {
 		}
 
 		@EventHandler
-		private void onClickAlVerReceta(InventoryClickEvent e) {
-		}
-
-		@EventHandler
 		private void onCrafteo(InventoryClickEvent e) {
 			Inventory inventory = e.getInventory();
 			if (inventory instanceof CraftInventoryCustom) {
@@ -1293,13 +1391,27 @@ public class Varita extends ItemStack {
 		@EventHandler
 		private void onInteractEntity(PlayerInteractEntityEvent e) {
 			Player p = e.getPlayer();
-			ItemStack item = p.getInventory().getItemInMainHand();
-			if (item != null) {
-				Varita varita = convertir(item);
-				if (varita != null)
-					if (varita.getConjuro() != null)
-						varita.getConjuro().Accionar(e.getPlayer(), e.getRightClicked(), null, varita,
-								TipoLanzamiento.DISTANCIA_ENTIDAD, false);
+			Entity clicada = e.getRightClicked();
+			if (clicada.getUniqueId().equals(ollivander.getUniqueId())) {
+				if (numerosMagicos.containsKey(p.getUniqueId())) {
+					p.sendMessage(
+							"<" + ollivander.getFullName() + "> Lo siento, pero creo que ya te vendi una varita.");
+				} else {
+					p.sendMessage(
+							"<" + ollivander.getFullName() + "> Toma, esto es para ti. Parece que le caes algo bien.");
+					float num = getOrGenerateNumero(p);
+					Varita varita = new Varita(null, (float) (num * 0.6), null, null, null, null, null, false);
+					p.getInventory().addItem(varita);
+				}
+			} else {
+				ItemStack item = p.getInventory().getItemInMainHand();
+				if (item != null) {
+					Varita varita = convertir(item);
+					if (varita != null)
+						if (varita.getConjuro() != null)
+							varita.getConjuro().Accionar(e.getPlayer(), clicada, null, varita,
+									TipoLanzamiento.DISTANCIA_ENTIDAD, false);
+				}
 			}
 		}
 

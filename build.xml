@@ -5,7 +5,7 @@
             <fileset dir="bin"></fileset>
             <fileset file="plugin.yml"></fileset>
         </jar>
-        <jar destfile="C:/Todo/MC Servers/Roleplay Server/plugins/${ant.project.name}.jar">
+        <jar destfile="C:/Todo/MC Servers/Harry Potter 1.14.4/plugins/${ant.project.name}.jar">
             <fileset dir="bin"></fileset>
             <fileset file="plugin.yml"></fileset>
         </jar>

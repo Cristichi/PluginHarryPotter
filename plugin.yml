@@ -1,7 +1,8 @@
 name: MagiaBorras
 main: main.MagiaPlugin
-version: 0.2
+version: 0.3
 api-version: 1.13
+depend: [Citizens]
 commands:
   magia:
     description: Controla el plugin.
@@ -12,10 +13,9 @@ permissions:
     children:
       magiaborras.use: true
       magiaborras.create: true
-      magiaborras.nocd: false
       magiaborras.admin: true
   magiaborras.use:
-    default: false
+    default: op
   magiaborras.create:
     default: op
   magiaborras.admin:
