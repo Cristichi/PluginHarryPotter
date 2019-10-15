@@ -21,8 +21,8 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import constr.Caldero;
 import net.citizensnpcs.api.CitizensPlugin;
+import obj.Caldero;
 import obj.Pocion;
 import obj.RecetaPocion;
 import obj.Varita;

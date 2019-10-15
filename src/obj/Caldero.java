@@ -1,4 +1,4 @@
-package constr;
+package obj;
 
 import java.util.ArrayList;
 
@@ -24,7 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
-import obj.RecetaPocion;
 
 public class Caldero implements Listener {
 	private static String metaCaldero = "caldero";
