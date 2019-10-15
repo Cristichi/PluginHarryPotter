@@ -21,8 +21,10 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import constr.Caldero;
 import net.citizensnpcs.api.CitizensPlugin;
 import obj.Pocion;
+import obj.RecetaPocion;
 import obj.Varita;
 import obj.Varita.Conjuro;
 
@@ -30,7 +32,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public Permission USE = new Permission("magiaborras.use");
 	public Permission CREATE = new Permission("magiaborras.create");
 	public Permission ADMIN = new Permission("magiaborras.admin");
-	
+
 	private PluginDescriptionFile desc = getDescription();
 
 	private File archivoNumeros = new File("plugins/" + desc.getName() + "/Números Mágicos.yml");
@@ -45,7 +47,10 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	public static CitizensPlugin citizens;
 	private static Location ollivanderLoc;
-	
+
+	public Caldero caldero;
+	public ArrayList<RecetaPocion> recetas;
+
 	@Override
 	public void onEnable() {
 		Pocion.Init(this);
@@ -56,25 +61,33 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			e.printStackTrace();
 		}
 
-		if (ollivanderLoc!=null) {
+		if (ollivanderLoc != null) {
 			Varita.moverOllivanders(ollivanderLoc);
 		}
 
+		recetas = new ArrayList<>(1);
+		ArrayList<Material> ingredientes = new ArrayList<>(1);
+		ingredientes.add(Material.APPLE);
+		Pocion poti = Pocion.getInvisibilidad();
+		RecetaPocion receta =new RecetaPocion(poti, ingredientes); 
+		recetas.add(receta);
+		caldero = new Caldero(this, recetas);
+		
 		help = new ArrayList<>();
 		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
 
 		citizens = (CitizensPlugin) getServer().getPluginManager().getPlugin("Citizens");
-		
+
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
 	}
 
 	@Override
 	public void onDisable() {
-		if (Varita.getOllivander()!=null && Varita.getOllivander().isSpawned()) {
-			ollivanderLoc= Varita.getOllivander().getStoredLocation();
+		if (Varita.getOllivander() != null && Varita.getOllivander().isSpawned()) {
+			ollivanderLoc = Varita.getOllivander().getStoredLocation();
 			Varita.getOllivander().getUniqueId();
 			Varita.getOllivander().destroy();
 		}
@@ -91,15 +104,15 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		boolean bueno = true;
 		switch (args[0]) {
 		case "test":
-			if (sender instanceof Player){
-				if (args.length==1) {
+			if (sender instanceof Player) {
+				if (args.length == 1) {
 					((Player) sender).getInventory().addItem(Pocion.get("solitario"));
-				}else {
+				} else {
 					Pocion pot = Pocion.get(args[1]);
-					if (pot==null) {
-						sender.sendMessage(header+"No existe esa poción.");
-					}else
-					((Player) sender).getInventory().addItem(pot);
+					if (pot == null) {
+						sender.sendMessage(header + "No existe esa poción.");
+					} else
+						((Player) sender).getInventory().addItem(pot);
 				}
 			}
 			break;

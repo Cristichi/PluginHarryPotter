@@ -71,6 +71,10 @@ public abstract class Pocion extends ItemStack {
 		plugin.getServer().getPluginManager().registerEvents(new Pocion.PocionListener(), plugin);
 	}
 
+	public static Pocion getInvisibilidad() {
+		return pociones.get("invisibilidad");
+	}
+
 	public static Pocion getSolitario() {
 		return pociones.get("solitario");
 	}
