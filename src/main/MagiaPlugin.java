@@ -66,17 +66,31 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		}
 
 		recetas = new ArrayList<>(1);
-		ArrayList<Material> ingredientes = new ArrayList<>(1);
-		ingredientes.add(Material.APPLE);
-		Pocion poti = Pocion.getInvisibilidad();
-		RecetaPocion receta =new RecetaPocion(poti, ingredientes); 
-		recetas.add(receta);
+
+		{
+			ArrayList<Material> ingredientes = new ArrayList<>(1);
+			ingredientes.add(Material.APPLE);
+			RecetaPocion receta = new RecetaPocion(Pocion.getInvisibilidad(), ingredientes);
+			recetas.add(receta);
+		}
+
+		{
+			ArrayList<Material> ingredientes = new ArrayList<>(1);
+			ingredientes.add(Material.WHEAT);
+			ingredientes.add(Material.SWEET_BERRIES);
+			ingredientes.add(Material.EGG);
+			ingredientes.add(Material.EGG);
+			RecetaPocion receta = new RecetaPocion(Pocion.getCervezaDeMantequilla(), ingredientes);
+			recetas.add(receta);
+		}
+
 		caldero = new Caldero(this, recetas);
-		
+
 		help = new ArrayList<>();
 		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
+		help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
 
 		citizens = (CitizensPlugin) getServer().getPluginManager().getPlugin("Citizens");
 

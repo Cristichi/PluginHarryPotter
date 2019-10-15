@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.function.BiConsumer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -45,6 +46,14 @@ public abstract class Pocion extends ItemStack {
 			}
 		});
 
+		pociones.put("cerveza_de_mantequilla", new Pocion("Cerveza de Mantequilla", Color.ORANGE, null) {
+			@Override
+			public void Accion(PlayerItemConsumeEvent e) {
+				Player p = e.getPlayer();
+				p.setFoodLevel(p.getFoodLevel() + 5);
+			}
+		});
+
 		pociones.put("muertos_en_vida", new Pocion("Filtro de Muertos en Vida", Color.LIME, null, "Para enemigos") {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
@@ -79,6 +88,10 @@ public abstract class Pocion extends ItemStack {
 		return pociones.get("solitario");
 	}
 
+	public static Pocion getCervezaDeMantequilla() {
+		return pociones.get("cerveza_de_mantequilla");
+	}
+
 	public static Pocion get(String nombre) {
 		return pociones.get(nombre);
 	}
@@ -103,10 +116,12 @@ public abstract class Pocion extends ItemStack {
 
 	// Clase
 	private String nombre;
+	private Color color;
 
 	private Pocion(String nombre, Color color, @Nullable PotionEffect effecto, String... lore) {
 		super(Material.POTION);
-		this.nombre = nombre;
+		this.nombre = ChatColor.RESET + nombre;
+		this.color = color;
 
 		PotionMeta meta = (PotionMeta) getItemMeta();
 		meta.setColor(color);
@@ -140,6 +155,10 @@ public abstract class Pocion extends ItemStack {
 
 	public String getNombre() {
 		return nombre;
+	}
+
+	public Color getColor() {
+		return color;
 	}
 
 	public PotionMeta getPotionMeta() {
