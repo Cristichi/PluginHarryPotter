@@ -29,7 +29,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class Caldero implements Listener {
-	private static String metaCaldero = "caldero";
 	private static String metaIngredientes = "ingredientesCaldero";
 
 	private Plugin plugin;
@@ -51,7 +50,6 @@ public class Caldero implements Listener {
 		case CAULDRON:
 			Block debajo = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
 			if (debajo.getType().equals(Material.CAMPFIRE)) {
-				lego.setMetadata(metaCaldero, new FixedMetadataValue(plugin, true));
 				CraftCauldron caldero = (CraftCauldron) lego.getBlockData();
 				caldero.setLevel(caldero.getMaximumLevel());
 				lego.setBlockData(caldero);
@@ -61,7 +59,9 @@ public class Caldero implements Listener {
 		case CAMPFIRE:
 			Block encima = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ());
 			if (encima.getType().equals(Material.CAULDRON)) {
-				encima.setMetadata(metaCaldero, new FixedMetadataValue(plugin, true));
+				CraftCauldron caldero = (CraftCauldron) encima.getBlockData();
+				caldero.setLevel(caldero.getMaximumLevel());
+				encima.setBlockData(caldero);
 				e.getPlayer().sendMessage("¡Has construido un caldero!");
 			}
 			break;
@@ -77,8 +77,7 @@ public class Caldero implements Listener {
 		switch (lego.getType()) {
 		case CAULDRON:
 			Block debajo = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
-			if (debajo.getType().equals(Material.CAMPFIRE) && lego.hasMetadata(metaCaldero)) {
-				lego.removeMetadata(metaCaldero, plugin);
+			if (debajo.getType().equals(Material.CAMPFIRE)) {
 				lego.removeMetadata(metaIngredientes, plugin);
 				if (idTaskParticulas != null)
 					Bukkit.getScheduler().cancelTask(idTaskParticulas);
@@ -87,11 +86,29 @@ public class Caldero implements Listener {
 			break;
 		case CAMPFIRE:
 			Block encima = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ());
-			if (encima.getType().equals(Material.CAULDRON) && encima.hasMetadata(metaCaldero)) {
-				encima.removeMetadata(metaCaldero, plugin);
-				encima.removeMetadata(metaIngredientes, plugin);
+			if (encima.getType().equals(Material.CAULDRON)) {
+				if (lego.hasMetadata(metaIngredientes)) {
+					Player p = e.getPlayer();
+
+					String ingredientes = lego.getMetadata(metaIngredientes).get(0).asString();
+					String[] ings = ingredientes.split(":");
+
+					World w = p.getWorld();
+					Location locEye = p.getEyeLocation();
+					for (String ing : ings) {
+						try {
+							Material mat = Material.valueOf(ing);
+							w.dropItemNaturally(locEye, new ItemStack(mat));
+						} catch (Exception err) {
+							err.printStackTrace();
+						}
+					}
+					lego.removeMetadata(metaIngredientes, plugin);
+				}
+
 				if (idTaskParticulas != null)
 					Bukkit.getScheduler().cancelTask(idTaskParticulas);
+
 				e.getPlayer().sendMessage("Has destruido el caldero.");
 			}
 			break;
@@ -112,7 +129,7 @@ public class Caldero implements Listener {
 					hilos.cancelTask(idTaskParticulas);
 				}
 				Block lego = item.getWorld().getBlockAt(item.getLocation());
-				if (lego.hasMetadata(metaCaldero)) {
+				if (isCaldero(lego)) {
 					ArrayList<Material> mats = new ArrayList<>();
 					String ing = "";
 					if (lego.hasMetadata(metaIngredientes)) {
@@ -144,8 +161,8 @@ public class Caldero implements Listener {
 							public void run() {
 								DustOptions dust = new DustOptions(receta.getResultado().getColor(),
 										(int) (Math.random() * 5));
-								world.spawnParticle(Particle.REDSTONE, loc.getX(), loc.getY(), loc.getZ(), 1, 0.1, 0.1, 0.1,
-										dust);
+								world.spawnParticle(Particle.REDSTONE, loc.getX(), loc.getY(), loc.getZ(), 1, 0.1, 0.1,
+										0.1, dust);
 							}
 						}, 0, 20);
 					}
@@ -158,7 +175,7 @@ public class Caldero implements Listener {
 	protected void onClick(PlayerInteractEvent e) {
 		if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 			Block lego = e.getClickedBlock();
-			if (lego.hasMetadata(metaCaldero)) {
+			if (isCaldero(lego)) {
 				Player p = e.getPlayer();
 				if (lego.hasMetadata(metaIngredientes)) {
 					if (p.isSneaking()) {
@@ -172,7 +189,6 @@ public class Caldero implements Listener {
 								Material mat = Material.valueOf(ing);
 								w.dropItemNaturally(loc, new ItemStack(mat));
 							} catch (Exception err) {
-								err.printStackTrace();
 							}
 						}
 						lego.removeMetadata(metaIngredientes, plugin);
@@ -204,9 +220,9 @@ public class Caldero implements Listener {
 
 	@EventHandler
 	protected void onCauldronLevelChange(CauldronLevelChangeEvent e) {
-		if (e.getBlock().hasMetadata(metaCaldero) && e.getEntity() instanceof Player) {
+		Block lego = e.getBlock();
+		if (isCaldero(lego) && e.getEntity() instanceof Player) {
 			Player p = (Player) e.getEntity();
-			Block lego = e.getBlock();
 			switch (e.getReason()) {
 			case BOTTLE_FILL:
 				if (lego.hasMetadata(metaIngredientes)) {
@@ -248,6 +264,11 @@ public class Caldero implements Listener {
 				break;
 			}
 		}
+	}
+
+	private static boolean isCaldero(Block lego) {
+		return lego.getType().equals(Material.CAULDRON)
+				&& lego.getWorld().getBlockAt(lego.getLocation().add(0, -1, 0)).getType().equals(Material.CAMPFIRE);
 	}
 
 	private RecetaPocion getReceta(ArrayList<Material> ingredientes) {
