@@ -50,18 +50,17 @@ public abstract class Pocion extends ItemStack {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
 				Player p = e.getPlayer();
-				p.setFoodLevel(p.getFoodLevel() + 5);
+				p.setFoodLevel(p.getFoodLevel() + 11);
 			}
 		});
 
-		pociones.put("muertos_en_vida", new Pocion("Filtro de Muertos en Vida", Color.LIME, null, "Para enemigos") {
+		pociones.put("paralizadora", new Pocion("Poción de Parálisis", Color.LIME, null) {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
 				BukkitScheduler scheduler = Bukkit.getScheduler();
 				Player p = e.getPlayer();
 				Location loc = p.getLocation();
 				int id = scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
-
 					@Override
 					public void run() {
 						p.teleport(loc);
@@ -73,7 +72,7 @@ public abstract class Pocion extends ItemStack {
 					public void run() {
 						scheduler.cancelTask(id);
 					}
-				}, 60);
+				}, 240);
 			}
 		});
 
@@ -90,6 +89,10 @@ public abstract class Pocion extends ItemStack {
 
 	public static Pocion getCervezaDeMantequilla() {
 		return pociones.get("cerveza_de_mantequilla");
+	}
+
+	public static Pocion getParalizadora() {
+		return pociones.get("paralizadora");
 	}
 
 	public static Pocion get(String nombre) {
@@ -120,7 +123,8 @@ public abstract class Pocion extends ItemStack {
 
 	private Pocion(String nombre, Color color, @Nullable PotionEffect effecto, String... lore) {
 		super(Material.POTION);
-		this.nombre = ChatColor.RESET + nombre;
+		nombre = ChatColor.RESET + nombre;
+		this.nombre = nombre;
 		this.color = color;
 
 		PotionMeta meta = (PotionMeta) getItemMeta();

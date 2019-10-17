@@ -84,6 +84,16 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			recetas.add(receta);
 		}
 
+		{
+			ArrayList<Material> ingredientes = new ArrayList<>(1);
+			ingredientes.add(Material.FERMENTED_SPIDER_EYE);
+			ingredientes.add(Material.ROTTEN_FLESH);
+			ingredientes.add(Material.ROTTEN_FLESH);
+			ingredientes.add(Material.ROTTEN_FLESH);
+			RecetaPocion receta = new RecetaPocion(Pocion.getParalizadora(), ingredientes);
+			recetas.add(receta);
+		}
+
 		caldero = new Caldero(this, recetas);
 
 		help = new ArrayList<>();
