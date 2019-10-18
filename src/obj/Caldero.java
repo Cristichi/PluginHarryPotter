@@ -78,6 +78,17 @@ public class Caldero implements Listener {
 		case CAULDRON:
 			Block debajo = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
 			if (debajo.getType().equals(Material.CAMPFIRE)) {
+				if (lego.hasMetadata(metaIngredientes)) {
+					String ings = lego.getMetadata(metaIngredientes).get(0).asString();
+					String[] matStrings = ings.split(":");
+					World w = lego.getWorld();
+					for (String m : matStrings) {
+						try {
+							w.dropItemNaturally(loc, new ItemStack(Material.valueOf(m)));
+						} catch (Exception e1) {
+						}
+					}
+				}
 				lego.removeMetadata(metaIngredientes, plugin);
 				if (idTaskParticulas != null)
 					Bukkit.getScheduler().cancelTask(idTaskParticulas);
@@ -87,23 +98,17 @@ public class Caldero implements Listener {
 		case CAMPFIRE:
 			Block encima = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ());
 			if (encima.getType().equals(Material.CAULDRON)) {
-				if (lego.hasMetadata(metaIngredientes)) {
-					Player p = e.getPlayer();
-
-					String ingredientes = lego.getMetadata(metaIngredientes).get(0).asString();
-					String[] ings = ingredientes.split(":");
-
-					World w = p.getWorld();
-					Location locEye = p.getEyeLocation();
-					for (String ing : ings) {
+				if (encima.hasMetadata(metaIngredientes)) {
+					String ings = lego.getMetadata(metaIngredientes).get(0).asString();
+					String[] matStrings = ings.split(":");
+					World w = encima.getWorld();
+					Location locC = encima.getLocation();
+					for (String m : matStrings) {
 						try {
-							Material mat = Material.valueOf(ing);
-							w.dropItemNaturally(locEye, new ItemStack(mat));
-						} catch (Exception err) {
-							err.printStackTrace();
+							w.dropItemNaturally(locC, new ItemStack(Material.valueOf(m)));
+						} catch (Exception e1) {
 						}
 					}
-					lego.removeMetadata(metaIngredientes, plugin);
 				}
 
 				if (idTaskParticulas != null)
@@ -197,22 +202,6 @@ public class Caldero implements Listener {
 							Bukkit.getScheduler().cancelTask(idTaskParticulas);
 						}
 					}
-//					else {
-//						String ingredientes = lego.getMetadata(metaIngredientes).get(0).asString();
-//						String[] ings = ingredientes.split(":");
-//
-//						String msg = "Ingredientes:";
-//						for (String ing : ings) {
-//							if (!ing.isEmpty())
-//								try {
-//									Material mat = Material.valueOf(ing);
-//									msg += "\n  -" + mat.toString();
-//								} catch (Exception err) {
-//									err.printStackTrace();
-//								}
-//						}
-//						p.sendMessage(msg);
-//					}
 				}
 			}
 		}
@@ -233,7 +222,6 @@ public class Caldero implements Listener {
 							try {
 								mats.add(Material.valueOf(strs[i]));
 							} catch (Exception err) {
-								System.err.println("Error trying to convert " + strs[i] + " to Material");
 							}
 						}
 					}

@@ -75,7 +75,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(1);
+			ArrayList<Material> ingredientes = new ArrayList<>(4);
 			ingredientes.add(Material.WHEAT);
 			ingredientes.add(Material.SWEET_BERRIES);
 			ingredientes.add(Material.EGG);
@@ -85,12 +85,44 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(1);
+			ArrayList<Material> ingredientes = new ArrayList<>(4);
 			ingredientes.add(Material.FERMENTED_SPIDER_EYE);
 			ingredientes.add(Material.ROTTEN_FLESH);
 			ingredientes.add(Material.ROTTEN_FLESH);
 			ingredientes.add(Material.ROTTEN_FLESH);
 			RecetaPocion receta = new RecetaPocion(Pocion.getParalizadora(), ingredientes);
+			recetas.add(receta);
+		}
+
+		{
+			ArrayList<Material> ingredientes = new ArrayList<>(7);
+			ingredientes.add(Material.FEATHER);
+			ingredientes.add(Material.FEATHER);
+			ingredientes.add(Material.FEATHER);
+			ingredientes.add(Material.FEATHER);
+			ingredientes.add(Material.FEATHER);
+			ingredientes.add(Material.LEATHER_BOOTS);
+			ingredientes.add(Material.BLAZE_POWDER);
+			RecetaPocion receta = new RecetaPocion(Pocion.getLevitadora(), ingredientes);
+			recetas.add(receta);
+		}
+
+		{
+			ArrayList<Material> ingredientes = new ArrayList<>(4);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.GOLD_INGOT);
+			ingredientes.add(Material.PUMPKIN_PIE);
+			RecetaPocion receta = new RecetaPocion(Pocion.getFelixFelicis(), ingredientes);
 			recetas.add(receta);
 		}
 

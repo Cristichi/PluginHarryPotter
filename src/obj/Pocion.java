@@ -23,14 +23,46 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 public abstract class Pocion extends ItemStack {
 	protected static NamespacedKey keyPocion;
 
-	private static HashMap<String, Pocion> pociones = new HashMap<>(3);
+	private static HashMap<String, Pocion> pociones = new HashMap<>();
 
 	public static void Init(Plugin plugin) {
 		keyPocion = new NamespacedKey(plugin, "pocion");
+
+		pociones.put("felix_felicis", new Pocion("Felix Felicis", Color.ORANGE, null, "Suerte Líquida", "Quizás no está del todo bien...") {
+			@Override
+			public void Accion(PlayerItemConsumeEvent e) {
+				Player p = e.getPlayer();
+				switch ((int)(Math.random()*10)) {
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60000, 0), true);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					p.getInventory().addItem(new ItemStack(Material.GOLD_BLOCK, 2));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 6000, 0), true);
+					break;
+					
+				case 9:
+					p.getInventory().addItem(new ItemStack(Material.DIAMOND));
+					break;
+
+				default:
+					break;
+				}
+			}
+		});
+		
 		pociones.put("solitario", new Pocion("Poción del solitario", Color.MAROON, null, "Una voz en tu cabeza",
 				"te saluda cuando la bebes") {
 			@Override
@@ -76,6 +108,14 @@ public abstract class Pocion extends ItemStack {
 			}
 		});
 
+		pociones.put("levitadora", new Pocion("Poción de Aligerar", Color.LIME, new PotionEffect(PotionEffectType.LEVITATION, 150, 0)) {
+			@Override
+			public void Accion(PlayerItemConsumeEvent e) {
+				Player p = e.getPlayer();
+				p.setVelocity(p.getVelocity().add(new Vector(0, 0.5, 0)));
+			}
+		});
+
 		plugin.getServer().getPluginManager().registerEvents(new Pocion.PocionListener(), plugin);
 	}
 
@@ -93,6 +133,14 @@ public abstract class Pocion extends ItemStack {
 
 	public static Pocion getParalizadora() {
 		return pociones.get("paralizadora");
+	}
+
+	public static Pocion getLevitadora() {
+		return pociones.get("levitadora");
+	}
+
+	public static Pocion getFelixFelicis() {
+		return pociones.get("felix_felicis");
 	}
 
 	public static Pocion get(String nombre) {

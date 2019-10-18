@@ -29,4 +29,9 @@ public class RecetaPocion {
 		this.materiales = materiales;
 	}
 
+	@Override
+	public String toString() {
+		return "RecetaPocion [resultado=" + resultado.getNombre() + ", materiales=" + materiales + "]";
+	}
+
 }
