@@ -1,8 +1,8 @@
 name: MagiaBorras
 main: main.MagiaPlugin
-version: 0.4
+depend: [LightAPI]
+version: 0.5
 api-version: 1.13
-depend: [Citizens]
 commands:
   magia:
     description: Controla el plugin.

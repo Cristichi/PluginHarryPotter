@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Color;
 import org.bukkit.EntityEffect;
 import org.bukkit.FireworkEffect;
@@ -34,8 +35,8 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryCustom;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.ArmorStand;
@@ -61,7 +62,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -78,14 +78,12 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import main.MagiaPlugin;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.event.SpawnReason;
-import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.npc.CitizensNPC;
-import net.citizensnpcs.npc.skin.SkinnableEntity;
-import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
 import obj.Varita.Conjuro.TipoProyectil;
+import ru.beykerykt.lightapi.LightAPI;
+import ru.beykerykt.lightapi.LightType;
+import ru.beykerykt.lightapi.chunks.ChunkInfo;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
@@ -93,9 +91,8 @@ public class Varita extends ItemStack {
 	private static ShapedRecipe receta;
 	private static NamespacedKey keyReceta;
 
-	private static NPC ollivander;
-
 	private static MagiaPlugin plugin;
+	private static NamespacedKey keyJugador;
 	private static NamespacedKey keyNumeroMagico;
 	private static NamespacedKey keyNucleo;
 	private static NamespacedKey keyMadera;
@@ -109,6 +106,7 @@ public class Varita extends ItemStack {
 			throw new NullPointerException("You must use a plugin to initiate Varita.");
 		}
 		Varita.plugin = plugin;
+		keyJugador = new NamespacedKey(plugin, "varitaJugador");
 		keyNumeroMagico = new NamespacedKey(plugin, "varitaNumeroMagico");
 		keyNucleo = new NamespacedKey(plugin, "varitaNucleo");
 		keyMadera = new NamespacedKey(plugin, "varitaMadera");
@@ -149,7 +147,7 @@ public class Varita extends ItemStack {
 
 			@Override
 			public EnchantmentTarget getItemTarget() {
-				return EnchantmentTarget.ALL;
+				return EnchantmentTarget.BREAKABLE;
 			}
 
 			@Override
@@ -165,9 +163,9 @@ public class Varita extends ItemStack {
 
 		Varita result = new Varita();
 		ItemMeta im = result.getItemMeta();
-		im.setDisplayName(ChatColor.RESET + "Varita M·gica");
+		im.setDisplayName(ChatColor.RESET + "Varita M√°gica");
 		ArrayList<String> lore = new ArrayList<>();
-		lore.add(ChatColor.GRAY + "Varita m·gica para lanzar hechizos");
+		lore.add(ChatColor.GRAY + "Varita m√°gica para lanzar hechizos");
 		im.setLore(lore);
 
 		try {
@@ -204,34 +202,11 @@ public class Varita extends ItemStack {
 
 		Varita.numerosMagicos = new HashMap<>();
 
-		ollivander = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Ollivander");
-		ollivander.data().set(CitizensNPC.PLAYER_SKIN_TEXTURE_PROPERTIES_METADATA, "CristichiEX");
-
 		plugin.getServer().getPluginManager().registerEvents(new Varita.VaritaListener(), plugin);
-	}
-	
-	public static void setOllivander(NPC ollivander) {
-		Varita.ollivander = ollivander;
-	}
-	
-	public static NPC getOllivander() {
-		return ollivander;
 	}
 
 	public static ShapedRecipe getReceta() {
 		return receta;
-	}
-
-	public static void moverOllivanders(Location loc) {
-		if (ollivander.isSpawned()) {
-			ollivander.teleport(loc, TeleportCause.COMMAND);
-	        Entity npcEntity = ollivander.getEntity();
-			if (npcEntity instanceof SkinnableEntity) {
-	            ((SkinnableEntity) npcEntity).getSkinTracker().notifySkinChange(true);
-	        }
-		} else {
-			ollivander.spawn(loc, SpawnReason.COMMAND);
-		}
 	}
 
 	public static float getOrGenerateNumero(Player player) {
@@ -303,6 +278,7 @@ public class Varita extends ItemStack {
 	}
 
 	private float numeroMagico;
+	private String jugador;
 	private Nucleo nucleo;
 	private Madera madera;
 	private Flexibilidad flexibilidad;
@@ -312,12 +288,12 @@ public class Varita extends ItemStack {
 
 	public Varita() {
 //		this(new Random(), false);
-		this(null, null, null, null, null, null, null, false);
+		this(null, null, null, null, null, null, null, null, false);
 	}
 
 	public Varita(Varita otra) {
-		this(null, otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud, otra.conjuro,
-				otra.hack);
+		this(otra.jugador, null, otra.numeroMagico, otra.nucleo, otra.madera, otra.flexibilidad, otra.longitud,
+				otra.conjuro, otra.hack);
 	}
 //
 //	public Varita(Varita otra, Conjuro conjuro) {
@@ -335,9 +311,11 @@ public class Varita extends ItemStack {
 //		this(new Random().nextFloat(), nucleo, madera, flexibilidad, longitud, conjuro, hack);
 //	}
 
-	public Varita(@Nullable Long seed, @Nullable Float numeroMagico, @Nullable Nucleo nucleo, @Nullable Madera madera,
-			@Nullable Flexibilidad flexibilidad, @Nullable Longitud longitud, @Nullable Conjuro conjuro, boolean hack) {
+	public Varita(String jugador, @Nullable Long seed, @Nullable Float numeroMagico, @Nullable Nucleo nucleo,
+			@Nullable Madera madera, @Nullable Flexibilidad flexibilidad, @Nullable Longitud longitud,
+			@Nullable Conjuro conjuro, boolean hack) {
 		super(Material.STICK);
+		this.jugador = jugador;
 		Random rng = seed == null ? new Random() : new Random(seed);
 		if (numeroMagico == null)
 			this.numeroMagico = new Random().nextFloat();
@@ -374,13 +352,14 @@ public class Varita extends ItemStack {
 		if (posibleVarita == null)
 			return null;
 
-		String nucleo = null, madera, flexibilidad, longitud, conjuro;
+		String jugador, nucleo = null, madera, flexibilidad, longitud, conjuro;
 		boolean hack;
 		Float numeroMagico;
 		try {
 			if (posibleVarita.hasItemMeta() && posibleVarita.getItemMeta().getPersistentDataContainer()
 					.has(keyNumeroMagico, PersistentDataType.FLOAT)) {
 				PersistentDataContainer data = posibleVarita.getItemMeta().getPersistentDataContainer();
+				jugador = data.get(keyJugador, PersistentDataType.STRING);
 				numeroMagico = data.get(keyNumeroMagico, PersistentDataType.FLOAT);
 				nucleo = data.get(keyNucleo, PersistentDataType.STRING);
 				madera = data.get(keyMadera, PersistentDataType.STRING);
@@ -388,15 +367,16 @@ public class Varita extends ItemStack {
 				longitud = data.get(keyLongitud, PersistentDataType.STRING);
 				conjuro = data.get(keyConjuro, PersistentDataType.STRING);
 				hack = Boolean.parseBoolean(data.get(keyHack, PersistentDataType.STRING));
-				return new Varita(null, numeroMagico, Nucleo.valueOf(nucleo), Madera.valueOf(madera),
-						Flexibilidad.valueOf(flexibilidad), Longitud.valueOf(longitud),
+
+				return new Varita(jugador.equals("null") ? null : jugador, null, numeroMagico, Nucleo.valueOf(nucleo),
+						Madera.valueOf(madera), Flexibilidad.valueOf(flexibilidad), Longitud.valueOf(longitud),
 						conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
 //				return new Varita(numeroMagico, Nucleo.valueOf(nucleo), Madera.valueOf(madera),
 //						Flexibilidad.valueOf(flexibilidad), Longitud.valueOf(longitud),
 //						conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
 			}
 		} catch (Exception e) {
-			System.err.println("La varita no es v·lida, øha cambiado algo en alguna actualizaciÛn del plugin?.");
+			System.err.println("La varita no es v√°lida, ¬øha cambiado algo en alguna actualizaci√≥n del plugin?");
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
@@ -405,14 +385,14 @@ public class Varita extends ItemStack {
 
 	public void recagarDatos() {
 		ItemMeta im = getItemMeta();
-		im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString());
+		im.setDisplayName(ChatColor.RESET + "Varita de " + (jugador == null ? madera.toString() : jugador));
 		ArrayList<String> lore = new ArrayList<>();
 		if (conjuro != null) {
-			im.setDisplayName(ChatColor.RESET + "Varita de " + madera.toString() + " (" + conjuro.getChatColor()
-					+ conjuro.toString() + ChatColor.RESET + ")");
+			im.setDisplayName(ChatColor.RESET + "Varita de " + (jugador == null ? madera.toString() : jugador) + " ("
+					+ conjuro.getChatColor() + conjuro.toString() + ChatColor.RESET + ")");
 			lore.add(ChatColor.GRAY + "Conjuro: " + conjuro.getChatColor() + conjuro.toString());
 		}
-		lore.add(ChatColor.GRAY + "N˙cleo: " + nucleo.toString());
+		lore.add(ChatColor.GRAY + "N√∫cleo: " + nucleo.toString());
 		lore.add(ChatColor.GRAY + "Madera: " + madera.toString());
 		lore.add(ChatColor.GRAY + "Flexibilidad: " + flexibilidad.toString());
 		lore.add(ChatColor.GRAY + "Longitud: " + longitud.toString());
@@ -420,9 +400,10 @@ public class Varita extends ItemStack {
 			lore.add(ChatColor.BLACK.toString() + ChatColor.MAGIC
 					+ "Error732: La varita no parece funcionar de la forma normal.");
 		} else {
-			lore.add(ChatColor.GRAY + "La varita est· en buen estado.");
+			lore.add(ChatColor.GRAY + "La varita est√° en buen estado.");
 		}
 		im.setLore(lore);
+		im.getPersistentDataContainer().set(keyJugador, PersistentDataType.STRING, jugador == null ? "null" : jugador);
 		im.getPersistentDataContainer().set(keyNumeroMagico, PersistentDataType.FLOAT, numeroMagico);
 		im.getPersistentDataContainer().set(keyNucleo, PersistentDataType.STRING, nucleo.name());
 		im.getPersistentDataContainer().set(keyMadera, PersistentDataType.STRING, madera.name());
@@ -434,6 +415,10 @@ public class Varita extends ItemStack {
 		else
 			im.getPersistentDataContainer().set(keyConjuro, PersistentDataType.STRING, conjuro.name());
 		setItemMeta(im);
+	}
+
+	public String getJugador() {
+		return jugador;
 	}
 
 	public float getPotencia(Player mago) {
@@ -495,12 +480,12 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Nucleo {
-		ASTAS_DE_LEBRILOPE("Astas De LebrÌlope"), BIGOTES_DE_KNEAZLE, BIGOTES_DE_TROL, CORAL, CUERNO_DE_BASILISCO,
-		CUERNO_DE_SERPIENTE_CORNUDA, EQcxuUJwunvQgZnSQpGTJeEuqjoHcLiYk1("Espina Del Monstruo Del RÌo Blanco"),
-		FIBRA_DE_CORAZON_DE_DRAGON("Fibra De CorazÛn De DragÛn"),
-		FIBRA_DE_CORAZON_DE_SNALLYGASTER("Fibra De CorazÛn De Snallygaster"), PELO_DE_COLA_DE_THESTRAL,
+		ASTAS_DE_LEBRILOPE("Astas De Lebr√≠lope"), BIGOTES_DE_KNEAZLE, BIGOTES_DE_TROL, CORAL, CUERNO_DE_BASILISCO,
+		CUERNO_DE_SERPIENTE_CORNUDA, ESPINA_DEL_MONSTRUO_DEL_RIO_BLANCO("Espina Del Monstruo Del R√≠o Blanco"),
+		FIBRA_DE_CORAZON_DE_DRAGON("Fibra De Coraz√≥n De Drag√≥n"),
+		FIBRA_DE_CORAZON_DE_SNALLYGASTER("Fibra De Coraz√≥n De Snallygaster"), PELO_DE_COLA_DE_THESTRAL,
 		PELO_DE_GATO_WAMPUS, PELO_DE_KELPIE, PELO_DE_ROUGAROU, PELO_DE_COLA_DE_UNICORNIO, PELO_DE_VEELA,
-		PLUMA_DE_COLA_DE_AVE_DEL_TRUENO, PLUMA_DE_FENIX("Pluma De FÈnix");
+		PLUMA_DE_COLA_DE_AVE_DEL_TRUENO, PLUMA_DE_FENIX("Pluma De F√©nix");
 		private String nombre;
 
 		private Nucleo() {
@@ -534,11 +519,11 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Madera {
-		ABEDUL, ABETO, ACACIA, ACEBO, ALAMO("¡lamo"), ALAMO_TEMBLON("¡lamo TemblÛn"), ALERCE, ALISO, ARCE,
-		ARCE_AZUCARADO, AVELLANO, CANA("CaÒa"), CAOBA, CARPE, CASTANO("CastaÒo"), CEDRO, CEREZO, CIPRES("CiprÈs"),
-		CORNEJO, EBANO("…bano"), ENDRINO, ESPINO, ESPINO_DE_MAYO, FRESNO, FRESNO_ESPINOSO, HAYA, HIEDRA, LAUREL,
-		MADERA_DE_SERPIENTE, MANZANO, NOGAL, NOGAL_NEGRO, OLIVO, OLMO, PALISANDRO, PERAL, PICEA("PÌcea"), PINO,
-		ROBLE_INGLES("Roble InglÈs"), ROBLE_ROJO, SAUCE, SAUCO("Sa˙co"), SECOYA, SERBAL, SICOMORO("SicÛmoro"), TAMARACK,
+		ABEDUL, ABETO, ACACIA, ACEBO, ALAMO("√Ålamo"), ALAMO_TEMBLON("√Ålamo Tembl√≥n"), ALERCE, ALISO, ARCE,
+		ARCE_AZUCARADO, AVELLANO, CANA("Ca√±a"), CAOBA, CARPE, CASTANO("Casta√±o"), CEDRO, CEREZO, CIPRES("Cipr√©s"),
+		CORNEJO, EBANO("√Åbano"), ENDRINO, ESPINO, ESPINO_DE_MAYO, FRESNO, FRESNO_ESPINOSO, HAYA, HIEDRA, LAUREL,
+		MADERA_DE_SERPIENTE, MANZANO, NOGAL, NOGAL_NEGRO, OLIVO, OLMO, PALISANDRO, PERAL, PICEA("P√≠cea"), PINO,
+		ROBLE_INGLES("Roble Ingl√©s"), ROBLE_ROJO, SAUCE, SAUCO("Sa√∫co"), SECOYA, SERBAL, SICOMORO("Sic√≥moro"), TAMARACK,
 		TEJO, TILO_PLATEADO, VID;
 		private String nombre;
 
@@ -573,8 +558,8 @@ public class Varita extends ItemStack {
 	}
 
 	public static enum Flexibilidad {
-		MUY_RIGIDA("Muy RÌgida"), RIGIDA("RÌgida"), ALGO_RIGIDA("Algo RÌgida"), FLEXIBILIDAD_MEDIA, MUY_FLEXIBLE,
-		INCREIBLEMENTE_FLEXIBLE("IncreÌblemente Flexible"), EXTREMADAMENTE_FLEXIBLE;
+		MUY_RIGIDA("Muy R√≠gida"), RIGIDA("R√≠gida"), ALGO_RIGIDA("Algo R√≠gida"), FLEXIBILIDAD_MEDIA, MUY_FLEXIBLE,
+		INCREIBLEMENTE_FLEXIBLE("Incre√≠blemente Flexible"), EXTREMADAMENTE_FLEXIBLE;
 		private String nombre;
 
 		private Flexibilidad() {
@@ -639,8 +624,8 @@ public class Varita extends ItemStack {
 
 	public static enum Conjuro {
 		AVADA_KEDAVRA(
-				new MaterialChoice(Material.DRAGON_HEAD, Material.PLAYER_HEAD, Material.ZOMBIE_HEAD,
-						Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
+				new MaterialChoice(Material.DRAGON_HEAD, Material.CREEPER_HEAD, Material.PLAYER_HEAD,
+						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, TipoProyectil.COHETE) {
 
@@ -671,14 +656,55 @@ public class Varita extends ItemStack {
 				return false;
 			}
 		},
+		LUMOS(Material.TORCH, new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.WHITE + "" + ChatColor.BOLD,
+				Color.WHITE, 30, TipoProyectil.INVISIBLE) {
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr + 0.2 : cdr, avisar,
+						palabrasMagicas);
+			}
+
+			@Override
+			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+					TipoLanzamiento tipoLanzamiento, float potencia) {
+
+				Location loc = mago.getLocation();
+				LightAPI.createLight(loc, LightType.BLOCK, 5+(int)(10*potencia), true);
+				Chunk c = loc.getChunk();
+				LightAPI.updateChunk(
+						new ChunkInfo(loc.getWorld(), c.getX(), loc.getBlockY(), c.getZ(),
+								Bukkit.getServer().getOnlinePlayers()),
+						LightType.BLOCK, Bukkit.getServer().getOnlinePlayers());
+				RunnableLumosFin rlf = new RunnableLumosFin(loc);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, rlf, 50+(int)(250*potencia));
+
+				return true;
+			}
+
+			class RunnableLumosFin implements Runnable {
+				public Location anterior;
+
+				public RunnableLumosFin(Location anterior) {
+					this.anterior = anterior;
+				}
+
+				@Override
+				public void run() {
+					LightAPI.deleteLight(anterior, LightType.BLOCK, true);
+					Chunk c = anterior.getChunk();
+					LightAPI.updateChunk(
+							new ChunkInfo(anterior.getWorld(), c.getX(), anterior.getBlockY(), c.getZ(),
+									Bukkit.getServer().getOnlinePlayers()),
+							LightType.BLOCK, Bukkit.getServer().getOnlinePlayers());
+				}
+			}
+		},
 		EXPELLIARMUS(Material.RED_DYE, new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "",
 				Color.RED, 300, TipoProyectil.COHETE) {
 			@Override
 			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
 					boolean palabrasMagicas) {
-				if (mago.getName().equals("CristichiEX")) {
-					super.puedeLanzar(mago, victima, varita, 1, avisar, palabrasMagicas);
-				}
 				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr - 0.8 : cdr, avisar,
 						palabrasMagicas);
 			}
@@ -711,7 +737,7 @@ public class Varita extends ItemStack {
 					if (objetivo instanceof LivingEntity) {
 						int ticks = (int) (8 * potencia) + 1;
 						((LivingEntity) objetivo)
-								.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1), true);
+								.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
 						return true;
 					}
 				}
@@ -732,8 +758,7 @@ public class Varita extends ItemStack {
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 				if (objetivo instanceof LivingEntity) {
 					int ticks = (int) (60 * potencia) + 10;
-					((LivingEntity) objetivo).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, ticks, 999),
-							true);
+					((LivingEntity) objetivo).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, ticks, 999));
 //					final Location loc = objetivo.getLocation();
 					int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 						@Override
@@ -891,7 +916,7 @@ public class Varita extends ItemStack {
 				for (Entity ent : entidades) {
 					if (ent instanceof LivingEntity) {
 						((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,
-								(int) (20 * potencia), (int) (3 * potencia)), true);
+								(int) (20 * potencia), (int) (3 * potencia)));
 					}
 					ent.setVelocity(ent.getVelocity().setY(0));
 					ent.setFallDistance(0);
@@ -926,9 +951,8 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-		MORSMORDRE(new MaterialChoice(Material.CREEPER_HEAD, Material.FIRE_CHARGE),
-				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.DARK_GREEN + "", Color.GREEN, 60000, null,
-				TipoProyectil.INVISIBLE) {
+		MORSMORDRE(new MaterialChoice(Material.TOTEM_OF_UNDYING), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+				ChatColor.DARK_GREEN + "", Color.GREEN, 60000, null, TipoProyectil.INVISIBLE) {
 
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
@@ -938,6 +962,13 @@ public class Varita extends ItemStack {
 				vfx.setVisible(false);
 				vfx.setCollidable(false);
 				vfx.setInvulnerable(true);
+				mundo.setTime(13500);
+				Collection<? extends Player> ps = Bukkit.getOnlinePlayers();
+				for (Player player : ps) {
+					if (player.getWorld().getName().equals(mundo.getName())) {
+						player.sendMessage(MagiaPlugin.header + "¬°Alguien ha invocado la Marca Tenebrosa!");
+					}
+				}
 				int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 					boolean alt = true;
 
@@ -972,7 +1003,7 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		},
-		FINITE_INCANTATEM(new MaterialChoice(Material.TORCH), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+		FINITE_INCANTATEM(new MaterialChoice(Material.WATER_BUCKET), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
 				ChatColor.WHITE + "", Color.WHITE, 0, TipoProyectil.INVISIBLE) {
 			NamespacedKey key = new NamespacedKey(plugin, "efectoMorsmordre");
 
@@ -996,7 +1027,18 @@ public class Varita extends ItemStack {
 		},
 		STUPIFY(new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
 				Material.COBBLESTONE_WALL), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "",
-				Color.RED, 60, TipoProyectil.COHETE) {
+				Color.RED, 20, TipoProyectil.COHETE) {
+			@Override
+			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
+					boolean palabrasMagicas) {
+				if (super.puedeLanzar(mago, victima, varita, cdr + Math.random(), false, palabrasMagicas)) {
+					if (Math.random() > 0.8)
+						resetTiempoPalabras(mago);
+					return true;
+				}
+				return false;
+			}
+
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
@@ -1006,6 +1048,7 @@ public class Varita extends ItemStack {
 				return true;
 			}
 		};
+
 		protected String nombre;
 		protected MaterialChoice ingredientes;
 		protected TiposLanzamiento tiposLanzamiento;
@@ -1025,7 +1068,7 @@ public class Varita extends ItemStack {
 		private Conjuro(MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
 				int cooldownTicks, TipoProyectil tipoProyectil) {
 			this(ingredientes, tiposLanzamiento, chatColor, color, cooldownTicks,
-					ChatColor.RESET + "°{chatcolor}{nombre}" + ChatColor.RESET + "!", tipoProyectil);
+					ChatColor.RESET + "¬°{chatcolor}{nombre}" + ChatColor.RESET + "!", tipoProyectil);
 		}
 
 		private Conjuro(Material ingrediente, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
@@ -1040,7 +1083,7 @@ public class Varita extends ItemStack {
 		}
 
 		/**
-		 * Para las palabras m·gicas se puede usar:<br>
+		 * Para las palabras m√°gicas se puede usar:<br>
 		 * {nombre} Para el nombre del Conjuro<br>
 		 * {chatcolor} Para el color del Conjuro<br>
 		 * {atacante} Para el nombre del mago atacante<br>
@@ -1150,7 +1193,7 @@ public class Varita extends ItemStack {
 								int espera = (int) ((ticksObj - ticks) / 20);
 								if (!mensajes.containsKey(mago.getUniqueId())
 										|| mensajes.get(mago.getUniqueId()) + cdMensajeCd <= ticks) {
-									mago.sendMessage(plugin.header + "Debes esperar " + plugin.accentColor + espera
+									mago.sendMessage(MagiaPlugin.header + "Debes esperar " + plugin.accentColor + espera
 											+ plugin.textColor + " segundos para volver a lanzar " + chatColor
 											+ toString() + plugin.textColor + ".");
 									mensajes.put(mago.getUniqueId(), ticks);
@@ -1162,7 +1205,7 @@ public class Varita extends ItemStack {
 			} else {
 				puede = false;
 				if (avisar)
-					mago.sendMessage(plugin.header + plugin.errorColor + "No puedes usar Magia.");
+					mago.sendMessage(MagiaPlugin.header + plugin.errorColor + "No puedes usar Magia.");
 			}
 			if (palabras != null && palabrasMagicas && puede) {
 				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
@@ -1220,12 +1263,14 @@ public class Varita extends ItemStack {
 			p.discoverRecipe(keyReceta);
 			if (!numerosMagicos.containsKey(p.getUniqueId())) {
 				Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
-
 					@Override
 					public void run() {
-						p.getInventory().addItem(new Varita());
-						p.sendMessage(plugin.header
-								+ "Disfruta de tu primera varita. Usa /magia help para m·s informaciÛn sobre tu varita y t˙.");
+						Varita nueva = new Varita();
+						nueva.jugador = p.getName();
+						nueva.recagarDatos();
+						p.getInventory().addItem(nueva);
+						p.sendMessage(MagiaPlugin.header
+								+ "Disfruta de tu primera varita. Usa /magia help para m√°s informaci√≥n sobre tu varita y t√∫.");
 						getOrGenerateNumero(p);
 					}
 				}, 20);
@@ -1347,6 +1392,8 @@ public class Varita extends ItemStack {
 					e.setCancelled(true);
 					HumanEntity p = e.getView().getPlayer();
 					PlayerInventory pi = p.getInventory();
+					varita.jugador = p.getName();
+					varita.recagarDatos();
 
 					switch (e.getAction()) {
 					case MOVE_TO_OTHER_INVENTORY:
@@ -1392,26 +1439,13 @@ public class Varita extends ItemStack {
 		private void onInteractEntity(PlayerInteractEntityEvent e) {
 			Player p = e.getPlayer();
 			Entity clicada = e.getRightClicked();
-			if (clicada.getUniqueId().equals(ollivander.getUniqueId())) {
-				if (numerosMagicos.containsKey(p.getUniqueId())) {
-					p.sendMessage(
-							"<" + ollivander.getFullName() + "> Lo siento, pero creo que ya te vendi una varita.");
-				} else {
-					p.sendMessage(
-							"<" + ollivander.getFullName() + "> Toma, esto es para ti. Parece que le caes algo bien.");
-					float num = getOrGenerateNumero(p);
-					Varita varita = new Varita(null, (float) (num * 0.6), null, null, null, null, null, false);
-					p.getInventory().addItem(varita);
-				}
-			} else {
-				ItemStack item = p.getInventory().getItemInMainHand();
-				if (item != null) {
-					Varita varita = convertir(item);
-					if (varita != null)
-						if (varita.getConjuro() != null)
-							varita.getConjuro().Accionar(e.getPlayer(), clicada, null, varita,
-									TipoLanzamiento.DISTANCIA_ENTIDAD, false);
-				}
+			ItemStack item = p.getInventory().getItemInMainHand();
+			if (item != null) {
+				Varita varita = convertir(item);
+				if (varita != null)
+					if (varita.getConjuro() != null)
+						varita.getConjuro().Accionar(e.getPlayer(), clicada, null, varita,
+								TipoLanzamiento.DISTANCIA_ENTIDAD, false);
 			}
 		}
 

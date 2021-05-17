@@ -6,7 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Todo/MC Servers/craftbukkit-1.14.4-R0.1-SNAPSHOT.jar" sourcepath="C:/Todo/MC Servers/SpigotCraft-master.zip"/>
-	<classpathentry kind="lib" path="C:/Todo/MC Servers/Citizens-2.0.25-b1762.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/spigot-1.16.5.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/LightAPI-fork-3.4.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

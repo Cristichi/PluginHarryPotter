@@ -3,16 +3,18 @@ package main;
 import java.io.File;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryCustom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
@@ -21,7 +23,6 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.citizensnpcs.api.CitizensPlugin;
 import obj.Caldero;
 import obj.Pocion;
 import obj.RecetaPocion;
@@ -41,28 +42,22 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public final ChatColor textColor = ChatColor.AQUA;
 	public final ChatColor accentColor = ChatColor.GOLD;
 	public final ChatColor errorColor = ChatColor.DARK_RED;
-	public final String header = mainColor + "[" + desc.getName() + "] " + textColor;
+	public static String header;
 
 	private ArrayList<Ayuda> help;
-
-	public static CitizensPlugin citizens;
-	private static Location ollivanderLoc;
 
 	public Caldero caldero;
 	public ArrayList<RecetaPocion> recetas;
 
 	@Override
 	public void onEnable() {
+		header = mainColor + "[" + desc.getName() + "] " + textColor;
 		Pocion.Init(this);
 		Varita.Init(this);
 		try {
 			Varita.cargarNumeros(archivoNumeros);
 		} catch (FileSystemException e) {
 			e.printStackTrace();
-		}
-
-		if (ollivanderLoc != null) {
-			Varita.moverOllivanders(ollivanderLoc);
 		}
 
 		recetas = new ArrayList<>(1);
@@ -132,9 +127,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
-		help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
-
-		citizens = (CitizensPlugin) getServer().getPluginManager().getPlugin("Citizens");
+//		help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
 
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
@@ -142,11 +135,6 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
-		if (Varita.getOllivander() != null && Varita.getOllivander().isSpawned()) {
-			ollivanderLoc = Varita.getOllivander().getStoredLocation();
-			Varita.getOllivander().getUniqueId();
-			Varita.getOllivander().destroy();
-		}
 		Varita.guardarNumeros(archivoNumeros);
 		getLogger().info("Disabled");
 	}
@@ -236,16 +224,25 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				Map<Character, ItemStack> mapa = Varita.getReceta().getIngredientMap();
 				ItemStack[] matrix = inv.getContents();
 				matrix[0] = new Varita();
-				System.out.println("forma: " + forma);
+//				System.out.println("forma: " + forma);
 				System.out.println("mapa keys: " + mapa.keySet());
-				System.out.println("mapa vals: " + mapa.values());
+//				System.out.println("mapa vals: " + mapa.values());
 				for (int i = 0; i < 9; i++) {
-					System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
+//					System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
 					matrix[i + 1] = mapa.get(forma[i / 3].charAt(i % 3));
 				}
 				inv.setContents(matrix);
 				p.openInventory(inv);
 			}
+			break;
+		case "pociones":
+			String msg = header + "Pociones disponibles:";
+			Set<Entry<String, Pocion>> pociones = Pocion.getPociones().entrySet();
+			for (Iterator<Entry<String, Pocion>> it = pociones.iterator(); it.hasNext();) {
+				Entry<String, Pocion> entry = it.next();
+				msg += "\n" + ChatColor.DARK_GREEN + entry.getKey() + ": " + entry.getValue().getNombre();
+			}
+			sender.sendMessage(msg);
 			break;
 		case "sinergia":
 			if (sender instanceof Player) {
@@ -260,21 +257,18 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				}
 			}
 			break;
-		case "ollivanders":
-			if (sender instanceof Player && sender.hasPermission(ADMIN)) {
-				Varita.moverOllivanders(((Player) sender).getLocation());
+		case "recargarinfo":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+				if (varita != null) {
+					varita.recagarDatos();
+					p.getInventory().setItemInMainHand(varita);
+				} else {
+					p.sendMessage(header+"Eso no es una varita");
+				}
 			}
 			break;
-//		case "recargarinfo":
-//			if (sender instanceof Player) {
-//				Player p = (Player) sender;
-//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-//				if (varita != null) {
-//					varita.recagarDatos();
-//					p.getInventory().setItemInMainHand(varita);
-//				}
-//			}
-//			break;
 //
 //		case "oscura":
 //		case "oscuro":

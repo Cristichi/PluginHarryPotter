@@ -33,7 +33,7 @@ public abstract class Pocion extends ItemStack {
 	public static void Init(Plugin plugin) {
 		keyPocion = new NamespacedKey(plugin, "pocion");
 
-		pociones.put("felix_felicis", new Pocion("Felix Felicis", Color.ORANGE, null, "Suerte LÌquida", "Quiz·s no est· del todo bien...") {
+		pociones.put("felix_felicis", new Pocion("Felix Felicis", Color.ORANGE, null, "Suerte L√≠quida", "Quiz√°s no est√° del todo bien...") {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
 				Player p = e.getPlayer();
@@ -43,14 +43,14 @@ public abstract class Pocion extends ItemStack {
 				case 2:
 				case 3:
 				case 4:
-					p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60000, 0), true);
+					p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60000, 0));
 					break;
 				case 5:
 				case 6:
 				case 7:
 				case 8:
 					p.getInventory().addItem(new ItemStack(Material.GOLD_BLOCK, 2));
-					p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 6000, 0), true);
+					p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 6000, 0));
 					break;
 					
 				case 9:
@@ -63,15 +63,15 @@ public abstract class Pocion extends ItemStack {
 			}
 		});
 		
-		pociones.put("solitario", new Pocion("PociÛn del solitario", Color.MAROON, null, "Una voz en tu cabeza",
+		pociones.put("solitario", new Pocion("Poci√≥n del solitario", Color.MAROON, null, "Una voz en tu cabeza",
 				"te saluda cuando la bebes") {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
-				e.getPlayer().sendMessage("°Hola!");
+				e.getPlayer().sendMessage("¬°Hola!");
 			}
 		});
 
-		pociones.put("invisibilidad", new Pocion("PociÛn de Invisibilidad", Color.LIME,
+		pociones.put("invisibilidad", new Pocion("Poci√≥n de Invisibilidad", Color.LIME,
 				new PotionEffect(PotionEffectType.INVISIBILITY, 240, 0)) {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
@@ -86,7 +86,7 @@ public abstract class Pocion extends ItemStack {
 			}
 		});
 
-		pociones.put("paralizadora", new Pocion("PociÛn de Par·lisis", Color.LIME, null) {
+		pociones.put("paralizadora", new Pocion("Poci√≥n de Par√°lisis", Color.LIME, null) {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
 				BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -108,7 +108,7 @@ public abstract class Pocion extends ItemStack {
 			}
 		});
 
-		pociones.put("levitadora", new Pocion("PociÛn de Aligerar", Color.LIME, new PotionEffect(PotionEffectType.LEVITATION, 150, 0)) {
+		pociones.put("levitadora", new Pocion("Poci√≥n de Aligerar", Color.LIME, new PotionEffect(PotionEffectType.LEVITATION, 150, 0)) {
 			@Override
 			public void Accion(PlayerItemConsumeEvent e) {
 				Player p = e.getPlayer();
@@ -117,6 +117,10 @@ public abstract class Pocion extends ItemStack {
 		});
 
 		plugin.getServer().getPluginManager().registerEvents(new Pocion.PocionListener(), plugin);
+	}
+	
+	public static HashMap<String, Pocion> getPociones() {
+		return pociones;
 	}
 
 	public static Pocion getInvisibilidad() {

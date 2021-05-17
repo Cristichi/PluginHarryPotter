@@ -11,7 +11,7 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_14_R1.block.impl.CraftCauldron;
+import org.bukkit.craftbukkit.v1_16_R3.block.impl.CraftCauldron;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,7 +53,7 @@ public class Caldero implements Listener {
 				CraftCauldron caldero = (CraftCauldron) lego.getBlockData();
 				caldero.setLevel(caldero.getMaximumLevel());
 				lego.setBlockData(caldero);
-				e.getPlayer().sendMessage("¡Has construido un caldero! ");
+				e.getPlayer().sendMessage("Â¡Has construido un caldero! ");
 			}
 			break;
 		case CAMPFIRE:
@@ -62,7 +62,7 @@ public class Caldero implements Listener {
 				CraftCauldron caldero = (CraftCauldron) encima.getBlockData();
 				caldero.setLevel(caldero.getMaximumLevel());
 				encima.setBlockData(caldero);
-				e.getPlayer().sendMessage("¡Has construido un caldero!");
+				e.getPlayer().sendMessage("Â¡Has construido un caldero!");
 			}
 			break;
 		default:
