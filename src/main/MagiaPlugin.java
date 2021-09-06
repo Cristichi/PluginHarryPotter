@@ -3,11 +3,8 @@ package main;
 import java.io.File;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -128,6 +125,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
 //		help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
+		help.add(new Ayuda("pociones", "¿Qué pociones puedo hacer y qué necesito?"));
 
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
@@ -240,10 +238,20 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			break;
 		case "pociones":
 			String msg = header + "Pociones disponibles:";
-			Set<Entry<String, Pocion>> pociones = Pocion.getPociones().entrySet();
-			for (Iterator<Entry<String, Pocion>> it = pociones.iterator(); it.hasNext();) {
-				Entry<String, Pocion> entry = it.next();
-				msg += "\n" + ChatColor.DARK_GREEN + entry.getKey() + ": " + entry.getValue().getNombre();
+			//TODO hacer que los items repetidos salgan como x5 en vez de el item 5 veces
+			for (RecetaPocion r : recetas) {
+				msg += textColor + "\nPara hacer " + mainColor + r.getResultado().getNombre() + textColor
+						+ " necesitas:\n";
+				for (int i = 0; i < r.getMateriales().size(); i++) {
+					if (i != 0) {
+						if (i == r.getMateriales().size() - 1) {
+							msg += textColor + " y ";
+						} else {
+							msg += textColor + ", ";
+						}
+					}
+					msg += accentColor + r.getMateriales().get(i).name().toLowerCase().replace("_", " ");
+				}
 			}
 			sender.sendMessage(msg);
 			break;
@@ -255,8 +263,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
 					float numP = varita.getPotencia(p);
-					p.sendMessage(header + "Su varita y usted están compenetrados al "
-							+ (int) (numP * 100) + "%");
+					p.sendMessage(header + "Su varita y usted están compenetrados al " + (int) (numP * 100) + "%");
 				}
 			}
 			break;
@@ -268,7 +275,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					varita.recagarDatos();
 					p.getInventory().setItemInMainHand(varita);
 				} else {
-					p.sendMessage(header+"Eso no es una varita");
+					p.sendMessage(header + "Eso no es una varita");
 				}
 			}
 			break;
