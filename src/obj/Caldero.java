@@ -11,7 +11,9 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftCauldron;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlockState;
+import org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftLayeredCauldron;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,19 +51,14 @@ public class Caldero implements Listener {
 		switch (lego.getType()) {
 		case CAULDRON:
 			Block debajo = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
-			if (debajo.getType().equals(Material.CAMPFIRE)) {
-				CraftCauldron caldero = (CraftCauldron) lego.getBlockData();
-				caldero.setLevel(caldero.getMaximumLevel());
-				lego.setBlockData(caldero);
-				e.getPlayer().sendMessage("¡Has construido un caldero! ");
+			if (debajo.getType().name().contains("CAMPFIRE")) {
+				e.getPlayer().sendMessage("¡Has construido un caldero!");
 			}
 			break;
+		case SOUL_CAMPFIRE:
 		case CAMPFIRE:
 			Block encima = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ());
-			if (encima.getType().equals(Material.CAULDRON)) {
-				CraftCauldron caldero = (CraftCauldron) encima.getBlockData();
-				caldero.setLevel(caldero.getMaximumLevel());
-				encima.setBlockData(caldero);
+			if (encima.getType().equals(Material.WATER_CAULDRON)) {
 				e.getPlayer().sendMessage("¡Has construido un caldero!");
 			}
 			break;
@@ -77,7 +74,7 @@ public class Caldero implements Listener {
 		switch (lego.getType()) {
 		case CAULDRON:
 			Block debajo = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
-			if (debajo.getType().equals(Material.CAMPFIRE)) {
+			if (debajo.getType().name().contains("CAMPFIRE")) {
 				if (lego.hasMetadata(metaIngredientes)) {
 					String ings = lego.getMetadata(metaIngredientes).get(0).asString();
 					String[] matStrings = ings.split(":");
@@ -95,9 +92,10 @@ public class Caldero implements Listener {
 				e.getPlayer().sendMessage("Has destruido el caldero. ");
 			}
 			break;
+		case SOUL_CAMPFIRE:
 		case CAMPFIRE:
 			Block encima = lego.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY() + 1, loc.getBlockZ());
-			if (encima.getType().equals(Material.CAULDRON)) {
+			if (encima.getType().equals(Material.WATER_CAULDRON)) {
 				if (encima.hasMetadata(metaIngredientes)) {
 					String ings = lego.getMetadata(metaIngredientes).get(0).asString();
 					String[] matStrings = ings.split(":");
@@ -239,9 +237,12 @@ public class Caldero implements Listener {
 						pi.setItemInMainHand(new ItemStack(receta.getResultado()));
 						e.setCancelled(true);
 
-						CraftCauldron caldero = (CraftCauldron) lego.getBlockData();
-						caldero.setLevel(e.getNewLevel());
-						lego.setBlockData(caldero);
+						CraftBlockState level = (CraftBlockState) e.getNewState();
+						if (level.getBlockData() instanceof Levelled) {
+							CraftLayeredCauldron caldero = (CraftLayeredCauldron) lego.getBlockData();
+							caldero.setLevel(((Levelled) level.getBlockData()).getLevel());
+							lego.setBlockData(caldero);
+						}
 						if (idTaskParticulas != null) {
 							Bukkit.getScheduler().cancelTask(idTaskParticulas);
 						}
@@ -255,8 +256,8 @@ public class Caldero implements Listener {
 	}
 
 	private static boolean isCaldero(Block lego) {
-		return lego.getType().equals(Material.CAULDRON)
-				&& lego.getWorld().getBlockAt(lego.getLocation().add(0, -1, 0)).getType().equals(Material.CAMPFIRE);
+		return lego.getType().equals(Material.WATER_CAULDRON)
+				&& lego.getWorld().getBlockAt(lego.getLocation().add(0, -1, 0)).getType().name().contains("CAMPFIRE");
 	}
 
 	private RecetaPocion getReceta(ArrayList<Material> ingredientes) {
