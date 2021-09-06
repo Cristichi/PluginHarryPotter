@@ -6,4 +6,10 @@
             <fileset file="plugin.yml"></fileset>
         </jar>
     </target>
+    <target name="makejarpruebas" description="Create a jar for the project in the test servers">
+        <jar destfile="C:/Todo/MC Servers/Pruebas/plugins/${ant.project.name}.jar">
+            <fileset dir="bin"></fileset>
+            <fileset file="plugin.yml"></fileset>
+        </jar>
+    </target>
 </project>

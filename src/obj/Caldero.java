@@ -11,7 +11,7 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.block.impl.CraftCauldron;
+import org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftCauldron;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -14,7 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftInventoryCustom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
@@ -160,6 +160,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				}
 			}
 			break;
+		case "version":
+			sender.sendMessage(header + desc.getFullName());
+			break;
 		case "help":
 			sender.sendMessage(header + "Comandos:");
 			for (Ayuda ayuda : help) {
@@ -251,9 +254,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				if (varita == null) {
 					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
-					float numP = Varita.getOrGenerateNumero(p);
+					float numP = varita.getPotencia(p);
 					p.sendMessage(header + "Su varita y usted están compenetrados al "
-							+ (int) ((1 - Math.abs(numP - varita.getNumeroMagico())) * 100) + "%");
+							+ (int) (numP * 100) + "%");
 				}
 			}
 			break;

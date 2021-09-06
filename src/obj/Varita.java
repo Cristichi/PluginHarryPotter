@@ -35,8 +35,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftInventoryCustom;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.ArmorStand;
@@ -78,12 +77,13 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import main.MagiaPlugin;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
 import obj.Varita.Conjuro.TipoProyectil;
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.LightType;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
+import util.Reflection;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
@@ -658,26 +658,47 @@ public class Varita extends ItemStack {
 		},
 		LUMOS(Material.TORCH, new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.WHITE + "" + ChatColor.BOLD,
 				Color.WHITE, 30, TipoProyectil.INVISIBLE) {
+
 			@Override
 			public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
 					boolean palabrasMagicas) {
-				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr + 0.2 : cdr, avisar,
-						palabrasMagicas);
+				return super.puedeLanzar(mago, victima, varita, varita.isHack() ? cdr + 0.2 : cdr, avisar, false);
 			}
+
+//			@Override
+//			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
+//					TipoLanzamiento tipoLanzamiento, float potencia) {
+//				Location loc = mago.getLocation();
+//				forceBlockLight(mago, loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ(), 15);
+//				return true;
+//			}
+//
+//			public void forceBlockLight(Player player, int x, int y, int z, int level) {
+//				net.minecraft.server.v1_16_R3.World w = ((CraftWorld) player.getWorld()).getHandle();
+//				BlockPosition bp = new BlockPosition(x, y, z); 
+//				w.e().a(bp, level);
+//				w.notify(bp, null, null, 0);
+//			}
+
+//			@SuppressWarnings("unchecked")
+//			public void queueChunk(Player player, int cx, int cz) {
+//				((CraftPlayer) player).getHandle().chunkCoordIntPairQueue.add(new ChunkCoordIntPair(cx, cz));
+//			}
 
 			@Override
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 
+				
 				Location loc = mago.getLocation();
-				LightAPI.createLight(loc, LightType.BLOCK, 5+(int)(10*potencia), true);
+				LightAPI.createLight(loc, LightType.BLOCK, 5 + (int) (10 * potencia), true);
 				Chunk c = loc.getChunk();
 				LightAPI.updateChunk(
 						new ChunkInfo(loc.getWorld(), c.getX(), loc.getBlockY(), c.getZ(),
 								Bukkit.getServer().getOnlinePlayers()),
-						LightType.BLOCK, Bukkit.getServer().getOnlinePlayers());
+						LightType.BLOCK);
 				RunnableLumosFin rlf = new RunnableLumosFin(loc);
-				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, rlf, 50+(int)(250*potencia));
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, rlf, 50 + (int) (250 * potencia));
 
 				return true;
 			}
@@ -696,7 +717,7 @@ public class Varita extends ItemStack {
 					LightAPI.updateChunk(
 							new ChunkInfo(anterior.getWorld(), c.getX(), anterior.getBlockY(), c.getZ(),
 									Bukkit.getServer().getOnlinePlayers()),
-							LightType.BLOCK, Bukkit.getServer().getOnlinePlayers());
+							LightType.BLOCK);
 				}
 			}
 		},
@@ -1265,13 +1286,20 @@ public class Varita extends ItemStack {
 				Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
 					@Override
 					public void run() {
-						Varita nueva = new Varita();
-						nueva.jugador = p.getName();
-						nueva.recagarDatos();
+						Varita nueva = null;
+
+						Varita nueva1 = new Varita();
+						nueva1.jugador = p.getName();
+						nueva1.recagarDatos();
+
+						Varita nueva2 = new Varita();
+						nueva2.jugador = p.getName();
+						nueva2.recagarDatos();
+
+						nueva = nueva1.getPotencia(p) > nueva2.getPotencia(p) ? nueva1 : nueva2;
 						p.getInventory().addItem(nueva);
 						p.sendMessage(MagiaPlugin.header
 								+ "Disfruta de tu primera varita. Usa /magia help para más información sobre tu varita y tú.");
-						getOrGenerateNumero(p);
 					}
 				}, 20);
 			}
@@ -1467,8 +1495,10 @@ public class Varita extends ItemStack {
 									Arrow rayo = mago.launchProjectile(Arrow.class);
 									PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
 											rayo.getEntityId());
-									for (Player pl : Bukkit.getOnlinePlayers())
-										((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+									for (Player pl : Bukkit.getOnlinePlayers()) {
+										Reflection.sendPacket(pl, packet);
+//										((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+									}
 
 									rayo.setSilent(true);
 									rayo.setGravity(false);
