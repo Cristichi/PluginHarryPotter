@@ -141,7 +141,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		label = label.toLowerCase();
 		if (args.length == 0) {
-			return false;
+			args = new String[] {"help"};
 		}
 		boolean bueno = true;
 		switch (args[0]) {
