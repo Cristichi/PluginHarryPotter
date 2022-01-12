@@ -17,6 +17,9 @@ public class Reflection {
 		try {
 			return Class.forName("net.minecraft.server"
 					+ Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + "." + name);
+//			System.out.println("net.minecraft.server"
+//					+ Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + "." + name);
+//			return Class.forName("net.minecraft.server.v1_18_R1." + name);
 		} catch (ClassNotFoundException ex) {
 		}
 		return null;

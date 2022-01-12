@@ -11,10 +11,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftInventoryCustom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -141,7 +141,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		label = label.toLowerCase();
 		if (args.length == 0) {
-			args = new String[] {"help"};
+			args = new String[] { "help" };
 		}
 		boolean bueno = true;
 		switch (args[0]) {
@@ -220,7 +220,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "receta":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				CraftInventoryCustom inv = (CraftInventoryCustom) Bukkit.createInventory(p, InventoryType.WORKBENCH);
+				CraftingInventory inv = (CraftingInventory) Bukkit.createInventory(p, InventoryType.WORKBENCH);
 				String[] forma = Varita.getReceta().getShape();
 				Map<Character, ItemStack> mapa = Varita.getReceta().getIngredientMap();
 				ItemStack[] matrix = inv.getContents();
@@ -238,7 +238,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			break;
 		case "pociones":
 			String msg = header + "Pociones disponibles:";
-			//TODO hacer que los items repetidos salgan como x5 en vez de el item 5 veces
+			// TODO hacer que los items repetidos salgan como x5 en vez de el item 5 veces
 			for (RecetaPocion r : recetas) {
 				msg += textColor + "\nPara hacer " + mainColor + r.getResultado().getNombre() + textColor
 						+ " necesitas:\n";
@@ -264,6 +264,18 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				} else {
 					float numP = varita.getPotencia(p);
 					p.sendMessage(header + "Su varita y usted están compenetrados al " + (int) (numP * 100) + "%");
+				}
+			}
+			break;
+		case "hack935jejenummagico":
+			if (sender instanceof Player) {
+				Player p = (Player) sender;
+				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+				if (varita == null) {
+					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+				} else {
+					float numP = varita.getNumeroMagico();
+					p.sendMessage(header + "Su varita tiene el número mágico "+numP);
 				}
 			}
 			break;

@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,8 +18,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.function.Predicate;
-
-import javax.annotation.Nullable;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -35,7 +36,6 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftInventoryCustom;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.ArmorStand;
@@ -77,7 +77,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import main.MagiaPlugin;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
 import obj.Varita.Conjuro.TipoProyectil;
 import ru.beykerykt.lightapi.LightAPI;
@@ -105,6 +104,7 @@ public class Varita extends ItemStack {
 		if (plugin == null || plugin.USE == null) {
 			throw new NullPointerException("You must use a plugin to initiate Varita.");
 		}
+
 		Varita.plugin = plugin;
 		keyJugador = new NamespacedKey(plugin, "varitaJugador");
 		keyNumeroMagico = new NamespacedKey(plugin, "varitaNumeroMagico");
@@ -311,9 +311,8 @@ public class Varita extends ItemStack {
 //		this(new Random().nextFloat(), nucleo, madera, flexibilidad, longitud, conjuro, hack);
 //	}
 
-	public Varita(String jugador, @Nullable Long seed, @Nullable Float numeroMagico, @Nullable Nucleo nucleo,
-			@Nullable Madera madera, @Nullable Flexibilidad flexibilidad, @Nullable Longitud longitud,
-			@Nullable Conjuro conjuro, boolean hack) {
+	public Varita(String jugador, Long seed, Float numeroMagico, Nucleo nucleo, Madera madera,
+			Flexibilidad flexibilidad, Longitud longitud, Conjuro conjuro, boolean hack) {
 		super(Material.STICK);
 		this.jugador = jugador;
 		Random rng = seed == null ? new Random() : new Random(seed);
@@ -689,14 +688,11 @@ public class Varita extends ItemStack {
 			protected boolean Accion(Player mago, Entity objetivo, Block bloque, Varita varita,
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 
-				
 				Location loc = mago.getLocation();
 				LightAPI.createLight(loc, LightType.BLOCK, 5 + (int) (10 * potencia), true);
 				Chunk c = loc.getChunk();
-				LightAPI.updateChunk(
-						new ChunkInfo(loc.getWorld(), c.getX(), loc.getBlockY(), c.getZ(),
-								Bukkit.getServer().getOnlinePlayers()),
-						LightType.BLOCK);
+				LightAPI.updateChunk(new ChunkInfo(loc.getWorld(), c.getX(), loc.getBlockY(), c.getZ(),
+						Bukkit.getServer().getOnlinePlayers()), LightType.BLOCK);
 				RunnableLumosFin rlf = new RunnableLumosFin(loc);
 				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, rlf, 50 + (int) (250 * potencia));
 
@@ -714,10 +710,8 @@ public class Varita extends ItemStack {
 				public void run() {
 					LightAPI.deleteLight(anterior, LightType.BLOCK, true);
 					Chunk c = anterior.getChunk();
-					LightAPI.updateChunk(
-							new ChunkInfo(anterior.getWorld(), c.getX(), anterior.getBlockY(), c.getZ(),
-									Bukkit.getServer().getOnlinePlayers()),
-							LightType.BLOCK);
+					LightAPI.updateChunk(new ChunkInfo(anterior.getWorld(), c.getX(), anterior.getBlockY(), c.getZ(),
+							Bukkit.getServer().getOnlinePlayers()), LightType.BLOCK);
 				}
 			}
 		},
@@ -1098,7 +1092,7 @@ public class Varita extends ItemStack {
 		}
 
 		private Conjuro(Material ingrediente, TiposLanzamiento tiposLanzamiento, String chatColor, Color color,
-				int cooldownTicks, @Nullable String palabrasMagicas, TipoProyectil tipoProyectil) {
+				int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
 			this(new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks, palabrasMagicas,
 					tipoProyectil);
 		}
@@ -1195,12 +1189,12 @@ public class Varita extends ItemStack {
 			cds.put(p.getUniqueId(), p.getTicksLived());
 		}
 
-		protected boolean Accion(Player mago, @Nullable Entity victima, @Nullable Block bloque, Varita varita,
+		protected boolean Accion(Player mago, Entity victima, Block bloque, Varita varita,
 				TipoLanzamiento tipoLanzamiento, float potencia) {
 			return false;
 		}
 
-		public boolean puedeLanzar(Player mago, @Nullable Entity victima, Varita varita, double cdr, boolean avisar,
+		public boolean puedeLanzar(Player mago, Entity victima, Varita varita, double cdr, boolean avisar,
 				boolean palabrasMagicas) {
 			boolean puede = true;
 			int ticks = mago.getTicksLived();
@@ -1238,8 +1232,8 @@ public class Varita extends ItemStack {
 			return puede;
 		}
 
-		public void Accionar(Player mago, @Nullable Entity victima, @Nullable Block bloque, Varita varita,
-				TipoLanzamiento tipoLanzamiento, boolean ignorarPuede) {
+		public void Accionar(Player mago, Entity victima, Block bloque, Varita varita, TipoLanzamiento tipoLanzamiento,
+				boolean ignorarPuede) {
 			if (varita == null) {
 				return;
 			}
@@ -1400,7 +1394,7 @@ public class Varita extends ItemStack {
 		@EventHandler
 		private void onCrafteo(InventoryClickEvent e) {
 			Inventory inventory = e.getInventory();
-			if (inventory instanceof CraftInventoryCustom) {
+			if (inventory instanceof CraftingInventory) {
 				if (Varita.convertir(inventory.getItem(0)) != null) {
 					e.setCancelled(true);
 					return;
@@ -1493,11 +1487,23 @@ public class Varita extends ItemStack {
 								if (c.isTipoProyectil(TipoProyectil.INVISIBLE)
 										|| c.isTipoProyectil(TipoProyectil.COHETE)) {
 									Arrow rayo = mago.launchProjectile(Arrow.class);
-									PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
-											rayo.getEntityId());
-									for (Player pl : Bukkit.getOnlinePlayers()) {
-										Reflection.sendPacket(pl, packet);
-//										((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+//									PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(rayo.getEntityId());
+									Class<?> classEntityDestroy = Reflection.getNMSClass("PacketPlayOutEntityDestroy");
+									if (classEntityDestroy != null) {
+										try {
+											Constructor<?> consEntityDestroy = classEntityDestroy
+													.getConstructor(Integer.class);
+											Object packet = consEntityDestroy.newInstance(rayo.getEntityId());
+											for (Player pl : Bukkit.getOnlinePlayers()) {
+												Reflection.sendPacket(pl, packet);
+//											((CraftPlayer) pl).getHandle().playerConnection.sendPacket(packet);
+											}
+										} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+											e1.printStackTrace();
+										}
+									} else {
+										plugin.getLogger().log(Level.WARNING,
+												"No se pudo eliminar la flecha en el lado del cliente");
 									}
 
 									rayo.setSilent(true);

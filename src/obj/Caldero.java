@@ -11,9 +11,8 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Levelled;
-import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlockState;
-import org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftLayeredCauldron;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -237,9 +236,9 @@ public class Caldero implements Listener {
 						pi.setItemInMainHand(new ItemStack(receta.getResultado()));
 						e.setCancelled(true);
 
-						CraftBlockState level = (CraftBlockState) e.getNewState();
+						BlockState level = e.getNewState();
 						if (level.getBlockData() instanceof Levelled) {
-							CraftLayeredCauldron caldero = (CraftLayeredCauldron) lego.getBlockData();
+							Levelled caldero = (Levelled) lego.getBlockData();
 							caldero.setLevel(((Levelled) level.getBlockData()).getLevel());
 							lego.setBlockData(caldero);
 						}

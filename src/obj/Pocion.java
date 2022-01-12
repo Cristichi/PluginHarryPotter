@@ -10,7 +10,6 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.libs.jline.internal.Nullable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -173,7 +172,7 @@ public abstract class Pocion extends ItemStack {
 	private String nombre;
 	private Color color;
 
-	private Pocion(String nombre, Color color, @Nullable PotionEffect effecto, String... lore) {
+	private Pocion(String nombre, Color color, PotionEffect effecto, String... lore) {
 		super(Material.POTION);
 		nombre = ChatColor.RESET + nombre;
 		this.nombre = nombre;

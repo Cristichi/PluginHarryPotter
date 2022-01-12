@@ -8,6 +8,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="C:/Todo/MC Plugins/LightAPI-fork-3.4.6.jar"/>
 	<classpathentry kind="lib" path="C:/Todo/MC Plugins/LightSource.jar"/>
-	<classpathentry kind="lib" path="C:/Todo/MC Plugins/spigot-1.17.1.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/BuildTools/Spigot/Spigot-API/target/spigot-api-1.18.1-R0.1-SNAPSHOT-shaded.jar" sourcepath="C:/Todo/MC Plugins/BuildTools/Spigot/Spigot-API/src"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/BuildTools/work/minecraft_server.1.18.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
