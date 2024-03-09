@@ -14,8 +14,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,6 +46,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	public Caldero caldero;
 	public ArrayList<RecetaPocion> recetas;
+
+	public String invMenuName = this.getName() + " conjuros";
 
 	@Override
 	public void onEnable() {
@@ -124,8 +127,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
-//		help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
+		// help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
 		help.add(new Ayuda("pociones", "¿Qué pociones puedo hacer y qué necesito?"));
+		help.add(new Ayuda("sinergia", "Con varita en mano, te dice cuánto le gustas a la varita!"));
 
 		getServer().getPluginManager().registerEvents(this, this);
 		getLogger().info("Enabled");
@@ -170,9 +174,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "give":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-//				p.getInventory()
-//						.addItem(new Varita(null, Varita.getOrGenerateNumero(p), Nucleo.FIBRA_DE_CORAZON_DE_DRAGON,
-//								Madera.SAUCO, Flexibilidad.FLEXIBILIDAD_MEDIA, Longitud.MUY_LARGA, null, false));
+				// p.getInventory()
+				// .addItem(new Varita(null, Varita.getOrGenerateNumero(p), Nucleo.FIBRA_DE_CORAZON_DE_DRAGON,
+				// Madera.SAUCO, Flexibilidad.FLEXIBILIDAD_MEDIA, Longitud.MUY_LARGA, null, false));
 				p.getInventory().addItem(new Varita());
 				p.sendMessage("<Ollivanders> De nada, feo");
 			}
@@ -200,36 +204,53 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "encantamientos":
 		case "ingredientes":
 		case "hechizos":
-			String conjuros = header + "Conjuros y sus ingredientes:";
-			for (Conjuro c : Conjuro.values()) {
-				String ing = "";
-				List<Material> mats = c.getIngredientes().getChoices();
-				for (int i = 0; i < mats.size(); i++) {
-					ing += accentColor + mats.get(i).toString().toLowerCase().replace("_", " ");
-					if (i == mats.size() - 2) {
-						ing += textColor + " o " + textColor;
-					} else if (i != mats.size() - 1) {
-						ing += textColor + ", " + textColor;
-					}
+			if (sender instanceof Player) {
+				int size = Conjuro.values().length;
+				while (size % 9 != 0) {
+					size++;
 				}
-				conjuros += "\n " + textColor + "[" + c.getChatColor() + c.getNombre() + textColor + "]: " + ing;
+				Inventory menu = Bukkit.createInventory(null, size, invMenuName);
+				for (Conjuro c : Conjuro.values()) {
+					List<Material> mats = c.getIngredientes().getChoices();
+					ItemStack is = new ItemStack(mats.get(0));
+					ItemMeta im = is.getItemMeta();
+					im.setDisplayName(textColor + c.getChatColor() + c.getNombre());
+					is.setItemMeta(im);
+					menu.addItem(is);
+				}
+				((Player) sender).openInventory(menu);
+			} else {
+				String conjuros = header + "Conjuros y sus ingredientes:";
+				for (Conjuro c : Conjuro.values()) {
+					String ing = "";
+					List<Material> mats = c.getIngredientes().getChoices();
+					for (int i = 0; i < mats.size(); i++) {
+						ing += accentColor + mats.get(i).toString().toLowerCase().replace("_", " ");
+						if (i == mats.size() - 2) {
+							ing += textColor + " o " + textColor;
+						} else if (i != mats.size() - 1) {
+							ing += textColor + ", " + textColor;
+						}
+					}
+					conjuros += "\n " + textColor + "[" + c.getChatColor() + c.getNombre() + textColor + "]: " + ing;
+				}
+				sender.sendMessage(conjuros);
 			}
-			sender.sendMessage(conjuros);
 			break;
 		case "varita":
 		case "receta":
 			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				CraftingInventory inv = (CraftingInventory) Bukkit.createInventory(p, InventoryType.WORKBENCH);
+				Inventory inv = (Inventory) Bukkit.createInventory(p, InventoryType.WORKBENCH);
 				String[] forma = Varita.getReceta().getShape();
 				Map<Character, ItemStack> mapa = Varita.getReceta().getIngredientMap();
 				ItemStack[] matrix = inv.getContents();
 				matrix[0] = new Varita();
-//				System.out.println("forma: " + forma);
-				System.out.println("mapa keys: " + mapa.keySet());
-//				System.out.println("mapa vals: " + mapa.values());
+				// System.out.println("forma: " + forma);
+				// System.out.println("mapa keys: " + mapa.keySet());
+				// System.out.println("mapa vals: " + mapa.values());
 				for (int i = 0; i < 9; i++) {
-//					System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
+					// System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
 					matrix[i + 1] = mapa.get(forma[i / 3].charAt(i % 3));
 				}
 				inv.setContents(matrix);
@@ -269,13 +290,17 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			break;
 		case "hack935jejenummagico":
 			if (sender instanceof Player) {
-				Player p = (Player) sender;
-				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+				Player mago = (Player) sender;
+				Varita varita = Varita.convertir(mago.getInventory().getItemInMainHand());
 				if (varita == null) {
-					p.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
+					mago.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
-					float numP = varita.getNumeroMagico();
-					p.sendMessage(header + "Su varita tiene el número mágico "+numP);
+//					float numV = varita.getNumeroMagico();
+//					mago.sendMessage(header + "Su varita tenía el número mágico " + numV);
+					float numP = Varita.getOrGenerateNumero(mago);
+					varita.setNumeroMagico(numP);
+					varita.cambiarConjuro(null);
+					mago.getInventory().setItemInMainHand(varita);
 				}
 			}
 			break;
@@ -291,27 +316,27 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				}
 			}
 			break;
-//
-//		case "oscura":
-//		case "oscuro":
-//		case "malo":
-//		case "maloso":
-//			if (sender instanceof Player) {
-//				Player p = (Player) sender;
-//				Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
-//				if (varita == null) {
-//					p.sendMessage(
-//							header + "Debe usted tener una varita en su mano para comprobar su sinergia con ella.");
-//				} else if (varita.isHack()) {
-//					p.sendMessage(header + "La varita ya está tornada a las artes oscuras.");
-//				} else {
-//					varita.setHack(true);
-//					p.sendMessage(header + "La varita está ahora " + ChatColor.BLACK + "a merced de tu oscuridad"
-//							+ textColor + ".");
-//					p.getInventory().setItemInMainHand(varita);
-//				}
-//			}
-//			break;
+		//
+		// case "oscura":
+		// case "oscuro":
+		// case "malo":
+		// case "maloso":
+		// if (sender instanceof Player) {
+		// Player p = (Player) sender;
+		// Varita varita = Varita.convertir(p.getInventory().getItemInMainHand());
+		// if (varita == null) {
+		// p.sendMessage(
+		// header + "Debe usted tener una varita en su mano para comprobar su sinergia con ella.");
+		// } else if (varita.isHack()) {
+		// p.sendMessage(header + "La varita ya está tornada a las artes oscuras.");
+		// } else {
+		// varita.setHack(true);
+		// p.sendMessage(header + "La varita está ahora " + ChatColor.BLACK + "a merced de tu oscuridad"
+		// + textColor + ".");
+		// p.getInventory().setItemInMainHand(varita);
+		// }
+		// }
+		// break;
 
 		default:
 			bueno = false;
