@@ -987,7 +987,6 @@ public class Varita extends ItemStack {
 				vfx.setVisible(false);
 				vfx.setCollidable(false);
 				vfx.setInvulnerable(true);
-				mundo.setTime(13500);
 				Collection<? extends Player> ps = Bukkit.getOnlinePlayers();
 				for (Player player : ps) {
 					if (player.getWorld().getName().equals(mundo.getName())) {
@@ -1014,6 +1013,7 @@ public class Varita extends ItemStack {
 						fw.setSilent(true);
 						fw.detonate();
 						alt = !alt;
+						mundo.setTime(13500);
 					}
 				}, 0, 1);
 				Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
@@ -1425,7 +1425,7 @@ public class Varita extends ItemStack {
 					mago.sendMessage(MagiaPlugin.header + "Ponte la varita en la mano anda, ains!");
 				} else {
 					PlayerInventory pi = mago.getInventory();
-					
+
 					boolean done = false;
 					for (Conjuro c : Conjuro.values()) {
 						if (c.getIngredientes().test(e.getCurrentItem())) {
@@ -1529,13 +1529,17 @@ public class Varita extends ItemStack {
 						if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)
 								|| c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
 							if (c.puedeLanzar(mago, null, varita, 0, true, true)) {
-								c.ponerEnCD(mago);
+								// c.ponerEnCD(mago);
 								if (c.isTipoProyectil(TipoProyectil.INVISIBLE)
 										|| c.isTipoProyectil(TipoProyectil.COHETE)) {
 
 									Entity target = Targeter.getTargetEntity(mago);
-									c.Accionar(mago, target, null, convertir(mago.getInventory().getItemInMainHand()),
-											TipoLanzamiento.DISTANCIA_ENTIDAD, true);
+									if (target != null) {
+										c.Accionar(mago, target, null,
+												convertir(mago.getInventory().getItemInMainHand()),
+												TipoLanzamiento.DISTANCIA_ENTIDAD, true);
+										c.ponerEnCD(mago);
+									}
 
 									// Arrow rayo = mago.launchProjectile(Arrow.class);
 									// PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
@@ -1590,6 +1594,7 @@ public class Varita extends ItemStack {
 						}
 						if (c.isTipoLanzamiento(TipoLanzamiento.AREA_MAGO)) {
 							c.Accionar(mago, null, null, varita, TipoLanzamiento.AREA_MAGO, false);
+							c.ponerEnCD(mago);
 						}
 					} else {
 						// Conjuro nulo
