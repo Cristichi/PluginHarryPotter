@@ -28,7 +28,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
-import org.bukkit.Particle.DustOptions;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -75,13 +74,12 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import main.MagiaPlugin;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import obj.Varita.Conjuro.TipoLanzamiento;
 import obj.Varita.Conjuro.TipoProyectil;
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.LightType;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
-import util.Reflection;
+import util.Targeter;
 
 public class Varita extends ItemStack {
 	private static HashMap<UUID, Float> numerosMagicos;
@@ -444,7 +442,7 @@ public class Varita extends ItemStack {
 	public float getNumeroMagico() {
 		return numeroMagico;
 	}
-	
+
 	public void setNumeroMagico(float numeroMagico) {
 		this.numeroMagico = numeroMagico;
 	}
@@ -652,13 +650,14 @@ public class Varita extends ItemStack {
 				if (objetivo instanceof LivingEntity) {
 					LivingEntity victimaViva = (LivingEntity) objetivo;
 					if (!victimaViva.isDead()) {
+						System.out.println(victimaViva.getName());
+						victimaViva.setHealth(1);
+						victimaViva.damage(9999);
 						victimaViva.playEffect(EntityEffect.HURT_DROWN);
 						victimaViva.getWorld().strikeLightningEffect(victimaViva.getLocation());
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1,
 								0.1F);
 						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENCHANT_THORNS_HIT, 1, 0.1F);
-						double vida = victimaViva.getHealth() * (0.8 - potencia);
-						victimaViva.setHealth(vida > 0 ? vida : 0);
 						resetTiempoPalabras(mago);
 						return true;
 					}
@@ -761,7 +760,7 @@ public class Varita extends ItemStack {
 					TipoLanzamiento tipoLanzamiento, float potencia) {
 				if (tipoLanzamiento.equals(TipoLanzamiento.DISTANCIA_ENTIDAD) && objetivo != null) {
 					if (objetivo instanceof LivingEntity) {
-						int ticks = (int) (8 * potencia) + 1;
+						int ticks = (int) (8 * potencia) + 2;
 						((LivingEntity) objetivo)
 								.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
 						return true;
@@ -1425,17 +1424,24 @@ public class Varita extends ItemStack {
 				if (varita == null) {
 					mago.sendMessage(MagiaPlugin.header + "Ponte la varita en la mano anda, ains!");
 				} else {
+					PlayerInventory pi = mago.getInventory();
+					
+					boolean done = false;
 					for (Conjuro c : Conjuro.values()) {
 						if (c.getIngredientes().test(e.getCurrentItem())) {
 							if (!c.equals(varita.getConjuro())) {
-								PlayerInventory pi = mago.getInventory();
 								varita.cambiarConjuro(c);
 								pi.setItemInMainHand(varita);
 							}
-							mago.closeInventory();
+							done = true;
 							break;
 						}
 					}
+					if (!done && varita.getConjuro() != null) {
+						varita.cambiarConjuro(null);
+						pi.setItemInMainHand(varita);
+					}
+					mago.closeInventory();
 				}
 			}
 
@@ -1526,53 +1532,59 @@ public class Varita extends ItemStack {
 								c.ponerEnCD(mago);
 								if (c.isTipoProyectil(TipoProyectil.INVISIBLE)
 										|| c.isTipoProyectil(TipoProyectil.COHETE)) {
-									Arrow rayo = mago.launchProjectile(Arrow.class);
-									PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(rayo.getEntityId());
-									Reflection.sendPacket(mago, packet);
-									for (Player pl : Bukkit.getOnlinePlayers()) {
-										Reflection.sendPacket(pl, packet);
-									}
 
-									rayo.setSilent(true);
-									rayo.setGravity(false);
-									rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
-									rayo.setMetadata("jugadorAtacante",
-											new FixedMetadataValue(plugin, mago.getUniqueId()));
-									rayo.setMetadata("numeroMagicoVarita",
-											new FixedMetadataValue(plugin, varita.getNumeroMagico()));
-									rayo.setMetadata(c.getMetaNombre(), c.getMetaFlecha());
-									if (c.isTipoProyectil(TipoProyectil.COHETE)) {
-										rayo.setVelocity(rayo.getVelocity().normalize());
-										int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin,
-												new Runnable() {
-													@Override
-													public void run() {
-														if (rayo.isValid()) {
-															rayo.getLocation().getWorld().spawnParticle(
-																	Particle.REDSTONE, rayo.getLocation(), 5, 0.1, 0.1,
-																	0.1, new DustOptions(c.getColor(), 1));
-														}
-													}
-												}, 0, 1);
+									Entity target = Targeter.getTargetEntity(mago);
+									c.Accionar(mago, target, null, convertir(mago.getInventory().getItemInMainHand()),
+											TipoLanzamiento.DISTANCIA_ENTIDAD, true);
 
-										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-											@Override
-											public void run() {
-												rayo.remove();
-												if (id > 0)
-													Bukkit.getScheduler().cancelTask(id);
-											}
-										}, 20);
-									} else {
-										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
-											@Override
-											public void run() {
-												rayo.remove();
-											}
-										}, 2);
-
-									}
+									// Arrow rayo = mago.launchProjectile(Arrow.class);
+									// PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
+									// rayo.getEntityId());
+									// Reflection.sendPacket(mago, packet);
+									// for (Player pl : Bukkit.getOnlinePlayers()) {
+									// Reflection.sendPacket(pl, packet);
+									// }
+									//
+									// rayo.setSilent(true);
+									// rayo.setGravity(false);
+									// rayo.setVelocity(rayo.getVelocity().normalize().multiply(10));
+									// rayo.setMetadata("jugadorAtacante",
+									// new FixedMetadataValue(plugin, mago.getUniqueId()));
+									// rayo.setMetadata("numeroMagicoVarita",
+									// new FixedMetadataValue(plugin, varita.getNumeroMagico()));
+									// rayo.setMetadata(c.getMetaNombre(), c.getMetaFlecha());
+									// if (c.isTipoProyectil(TipoProyectil.COHETE)) {
+									// rayo.setVelocity(rayo.getVelocity().normalize());
+									// int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin,
+									// new Runnable() {
+									// @Override
+									// public void run() {
+									// if (rayo.isValid()) {
+									// rayo.getLocation().getWorld().spawnParticle(
+									// Particle.REDSTONE, rayo.getLocation(), 5, 0.1, 0.1,
+									// 0.1, new DustOptions(c.getColor(), 1));
+									// }
+									// }
+									// }, 0, 1);
+									//
+									// Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+									// @Override
+									// public void run() {
+									// rayo.remove();
+									// if (id > 0)
+									// Bukkit.getScheduler().cancelTask(id);
+									// }
+									// }, 20);
+									// } else {
+									// Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+									//
+									// @Override
+									// public void run() {
+									// rayo.remove();
+									// }
+									// }, 2);
+									//
+									// }
 								}
 							}
 						}

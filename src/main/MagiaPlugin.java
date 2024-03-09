@@ -218,6 +218,12 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					is.setItemMeta(im);
 					menu.addItem(is);
 				}
+				ItemStack is = new ItemStack(Material.BARRIER);
+				ItemMeta im = is.getItemMeta();
+				im.setDisplayName(textColor + "Ninguno");
+				is.setItemMeta(im);
+				menu.addItem(is);
+
 				((Player) sender).openInventory(menu);
 			} else {
 				String conjuros = header + "Conjuros y sus ingredientes:";
@@ -295,8 +301,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				if (varita == null) {
 					mago.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
-//					float numV = varita.getNumeroMagico();
-//					mago.sendMessage(header + "Su varita tenía el número mágico " + numV);
+					// float numV = varita.getNumeroMagico();
+					// mago.sendMessage(header + "Su varita tenía el número mágico " + numV);
 					float numP = Varita.getOrGenerateNumero(mago);
 					varita.setNumeroMagico(numP);
 					varita.cambiarConjuro(null);
