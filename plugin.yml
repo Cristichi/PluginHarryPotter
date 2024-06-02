@@ -1,12 +1,12 @@
 name: MagiaBorras
 main: main.MagiaPlugin
-depend: [LightAPI]
-version: 0.6
+depend: []
+version: 1.6.1
 api-version: 1.13
 commands:
   magia:
     description: Controla el plugin.
-    aliases: [cm, cristichimagia]
+    aliases: [cm, cristichimagia, magiaborras]
     usage: /magia help
 permissions:
   magiaborras.*:
