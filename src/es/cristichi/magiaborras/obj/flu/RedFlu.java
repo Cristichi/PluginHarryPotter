@@ -30,7 +30,7 @@ public class RedFlu implements Listener {
 	public static List<Material> FUEGO = Arrays.asList(Material.SOUL_CAMPFIRE, Material.CAMPFIRE);
 	public static List<Material> ALFOMBRA = Arrays.asList(Material.GREEN_CARPET, Material.RED_CARPET);
 	public static List<Material> POLVOS = Arrays.asList(Material.GREEN_DYE);
-	private static HashMap<String, ChimeneaFlu> RED_FLU = new HashMap<>(2);
+	public static HashMap<String, ChimeneaFlu> RED_FLU = new HashMap<>(2);
 
 	public static ChimeneaFlu getChimeneaFlu(String displayName) {
 		return RED_FLU.get(displayName);
@@ -115,11 +115,11 @@ public class RedFlu implements Listener {
 					for (Map.Entry<String, ChimeneaFlu> entrada : RED_FLU.entrySet()) {
 						if (entrada.getValue().getLoc().equals(loc)) {
 							RED_FLU.remove(entrada.getKey());
+							mago.sendMessage("");
+							mago.sendMessage(MagiaPlugin.header + "Has roto tu chimenea y ha salido de la "
+									+ ChatColor.GREEN + "Red Flu" + MagiaPlugin.mainColor + ".");
 						}
 					}
-					mago.sendMessage("");
-					mago.sendMessage(MagiaPlugin.header + "Has roto tu chimenea y ha salido de la " + ChatColor.GREEN
-							+ "Red Flu" + MagiaPlugin.mainColor + ".");
 				}
 			}
 

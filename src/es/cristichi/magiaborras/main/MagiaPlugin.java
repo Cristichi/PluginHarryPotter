@@ -96,6 +96,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 		flooNetwork = new RedFlu();
 		getServer().getPluginManager().registerEvents(flooNetwork, this);
+		{
+			// TODO: Leer y escribir fichero para guardar la red flu y tal
+		}
 
 		MenuRedFlu.init(this);
 
@@ -171,6 +174,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		help.add(new Ayuda("sinergia", "Con varita en mano, te dice cuánto le gustas a la varita!"));
 
 		getServer().getPluginManager().registerEvents(this, this);
+		
 		getLogger().info("Enabled");
 	}
 
