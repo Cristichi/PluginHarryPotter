@@ -22,7 +22,7 @@ public class Incendio extends Conjuro {
 		super(plugin, "incendio", "Incendio", "FUEGO FUEGOOOO MUAJAJAJAJAJAJAJA",
 				new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.DISTANCIA_BLOQUE),
-				ChatColor.RED + "", Color.RED, 0, "");
+				ChatColor.RED + "", Color.RED, 200, "");
 	}
 
 	@Override
