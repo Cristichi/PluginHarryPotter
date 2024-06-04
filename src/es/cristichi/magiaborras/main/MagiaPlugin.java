@@ -1,13 +1,19 @@
 package es.cristichi.magiaborras.main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.StringTokenizer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,6 +27,7 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import es.cristichi.magiaborras.obj.flu.ChimeneaFlu;
 import es.cristichi.magiaborras.obj.flu.MenuRedFlu;
 import es.cristichi.magiaborras.obj.flu.RedFlu;
 import es.cristichi.magiaborras.obj.pocion.Caldero;
@@ -50,6 +57,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	private PluginDescriptionFile desc = getDescription();
 
 	private File archivoNumeros = new File("plugins/" + desc.getName() + "/Números Mágicos.yml");
+	private File archivoChimeneasFlu = new File("plugins/" + desc.getName() + "/chimeneas.flu");
 
 	public final static ChatColor mainColor = ChatColor.BLUE;
 	public final static ChatColor textColor = ChatColor.AQUA;
@@ -96,8 +104,32 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 		flooNetwork = new RedFlu();
 		getServer().getPluginManager().registerEvents(flooNetwork, this);
+
 		{
-			// TODO: Leer y escribir fichero para guardar la red flu y tal
+			try {
+				Scanner lector = new Scanner(archivoChimeneasFlu);
+				while (lector.hasNextLine()) {
+					String lineaChimenea = lector.nextLine(); // String lineaChimenea, simplemente es para ver más clara cada chimenea en el archivo
+					System.out.println("lineaChimenea "+lineaChimenea);
+					String lineaNombre = lector.nextLine();
+					System.out.println("lineaNombre "+lineaNombre);
+					String lineaOwner = lector.nextLine();
+					System.out.println("lineaOwner "+lineaOwner);
+					String lineaLoc = lector.nextLine();
+					System.out.println("lineaLoc "+lineaLoc);
+					StringTokenizer tokLoc = new StringTokenizer(lineaLoc, " ");
+					Location loc = new Location(Bukkit.getWorld(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()),
+							Double.parseDouble(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()));
+					RedFlu.RED_FLU.put(lineaNombre, new ChimeneaFlu(loc, lineaNombre, lineaOwner));
+				}
+				lector.close();
+			} catch (FileNotFoundException e) {
+				try {
+					archivoChimeneasFlu.createNewFile();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
 
 		MenuRedFlu.init(this);
@@ -174,13 +206,35 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		help.add(new Ayuda("sinergia", "Con varita en mano, te dice cuánto le gustas a la varita!"));
 
 		getServer().getPluginManager().registerEvents(this, this);
-		
+
 		getLogger().info("Enabled");
 	}
 
 	@Override
 	public void onDisable() {
 		Varita.guardarNumeros(archivoNumeros);
+
+		{
+			try {
+				archivoChimeneasFlu.delete();
+				archivoChimeneasFlu.createNewFile();
+				FileWriter myWriter = new FileWriter(archivoChimeneasFlu);
+				for (ChimeneaFlu chi : RedFlu.RED_FLU.values()) {
+					myWriter.write("---- Chimenea:");
+					myWriter.write("\n");
+					myWriter.write(chi.getNombre());
+					myWriter.write("\n");
+					myWriter.write(chi.getOwner());
+					myWriter.write("\n");
+					myWriter.write(chi.getLoc().getWorld().getName()+" "+chi.getLoc().getX()+" "+chi.getLoc().getY()+" "+chi.getLoc().getZ()+" ");
+					myWriter.write("\n");
+				}
+				myWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		getLogger().info("Disabled");
 	}
 
@@ -251,7 +305,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				Player mago = (Player) sender;
 				Varita varita = Varita.esItemStackUnaVarita(mago.getInventory().getItemInMainHand());
 				if (varita == null) {
-					mago.sendMessage(MagiaPlugin.header + "Ponte la varita en la mano anda. Si ya lo decía tu madre, que no vales pa na.");
+					mago.sendMessage(MagiaPlugin.header
+							+ "Ponte la varita en la mano anda. Si ya lo decía tu madre, que no vales pa na.");
 				} else {
 					int size = Conjuro.getConjuros().size();
 					while (size % 9 != 0) {

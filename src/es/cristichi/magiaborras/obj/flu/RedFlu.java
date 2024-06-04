@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -112,12 +113,19 @@ public class RedFlu implements Listener {
 					ok = true;
 				}
 				if (ok) {
+					loc = loc.clone().add(0.5, 0, 0.5);
 					for (Map.Entry<String, ChimeneaFlu> entrada : RED_FLU.entrySet()) {
 						if (entrada.getValue().getLoc().equals(loc)) {
 							RED_FLU.remove(entrada.getKey());
 							mago.sendMessage("");
 							mago.sendMessage(MagiaPlugin.header + "Has roto tu chimenea y ha salido de la "
 									+ ChatColor.GREEN + "Red Flu" + MagiaPlugin.mainColor + ".");
+						} else {
+							Bukkit.getLogger().info("---");
+							Bukkit.getLogger().info("Loc 1: "+entrada.getValue().getLoc());
+							Bukkit.getLogger().info("Loc 2: "+loc);
+							Bukkit.getLogger().info("---");
+							
 						}
 					}
 				}
@@ -125,6 +133,7 @@ public class RedFlu implements Listener {
 
 		} catch (NullPointerException nullExc) {
 			// If there are nullpointerexceptions, bro just do nothing ofc
+			nullExc.printStackTrace();
 		}
 	}
 
