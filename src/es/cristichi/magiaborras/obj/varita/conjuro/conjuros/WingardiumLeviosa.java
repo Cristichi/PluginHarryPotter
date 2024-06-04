@@ -7,6 +7,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -15,23 +16,15 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class WingardiumLeviosa extends Conjuro {
 
 	public WingardiumLeviosa(Plugin plugin) {
-		super(plugin, "wingardiumleviosa", "Wingardium Leviosa", Material.FEATHER,
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.GRAY + "", Color.GRAY, 0,
-				TipoProyectil.INVISIBLE);
-	}
-
-	@Override
-	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double cdr,
-			boolean avisar, boolean palabrasMagicas) {
-		// TODO Auto-generated method stub
-		return super.puedeLanzar(plugin, mago, victima, varita, varita.isHack() ? cdr - 0.8 : cdr, avisar,
-				palabrasMagicas);
+		super(plugin, "wingardiumleviosa", "Wingardium Leviosa",
+				"Mantén el ratón mientras miras fijamente a una persona y verás qué risa.",
+				new MaterialChoice(Material.FEATHER), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				ChatColor.GRAY + "", Color.GRAY, 0, "");
 	}
 
 	@Override

@@ -21,11 +21,14 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import es.cristichi.magiaborras.obj.flu.MenuRedFlu;
+import es.cristichi.magiaborras.obj.flu.RedFlu;
 import es.cristichi.magiaborras.obj.pocion.Caldero;
 import es.cristichi.magiaborras.obj.pocion.Pocion;
 import es.cristichi.magiaborras.obj.pocion.RecetaPocion;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.MenuConjuros;
 import es.cristichi.magiaborras.obj.varita.conjuro.conjuros.Accio;
 import es.cristichi.magiaborras.obj.varita.conjuro.conjuros.ArrestoMomentum;
 import es.cristichi.magiaborras.obj.varita.conjuro.conjuros.AvadaKedavra;
@@ -48,16 +51,18 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 	private File archivoNumeros = new File("plugins/" + desc.getName() + "/Números Mágicos.yml");
 
-	public final ChatColor mainColor = ChatColor.BLUE;
-	public final ChatColor textColor = ChatColor.AQUA;
-	public final ChatColor accentColor = ChatColor.GOLD;
-	public final ChatColor errorColor = ChatColor.DARK_RED;
+	public final static ChatColor mainColor = ChatColor.BLUE;
+	public final static ChatColor textColor = ChatColor.AQUA;
+	public final static ChatColor accentColor = ChatColor.GOLD;
+	public final static ChatColor errorColor = ChatColor.DARK_RED;
 	public static String header;
 
 	private ArrayList<Ayuda> help;
 
 	public Caldero caldero;
 	public ArrayList<RecetaPocion> recetas;
+
+	public RedFlu flooNetwork;
 
 	public String invMenuName = this.getName() + " conjuros";
 
@@ -71,7 +76,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		} catch (FileSystemException e) {
 			e.printStackTrace();
 		}
-		
+
+		MenuConjuros.init(this);
+
 		{
 			new Accio(this);
 			new ArrestoMomentum(this);
@@ -86,6 +93,11 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			new Stupify(this);
 			new WingardiumLeviosa(this);
 		}
+
+		flooNetwork = new RedFlu();
+		getServer().getPluginManager().registerEvents(flooNetwork, this);
+
+		MenuRedFlu.init(this);
 
 		recetas = new ArrayList<>(1);
 
@@ -232,26 +244,33 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "ingredientes":
 		case "hechizos":
 			if (sender instanceof Player) {
-				int size = Conjuro.getConjuros().size();
-				while (size % 9 != 0) {
-					size++;
-				}
-				Inventory menu = Bukkit.createInventory(null, size, invMenuName);
-				for (Conjuro c : Conjuro.getConjuros()) {
-					List<Material> mats = c.getIngredientes().getChoices();
-					ItemStack is = new ItemStack(mats.get(0));
+				Player mago = (Player) sender;
+				Varita varita = Varita.esItemStackUnaVarita(mago.getInventory().getItemInMainHand());
+				if (varita == null) {
+					mago.sendMessage(MagiaPlugin.header + "Ponte la varita en la mano anda. Si ya lo decía tu madre, que no vales pa na.");
+				} else {
+					int size = Conjuro.getConjuros().size();
+					while (size % 9 != 0) {
+						size++;
+					}
+					ArrayList<ItemStack> menuItems = new ArrayList<>(Conjuro.getConjuros().size());
+					for (Conjuro c : Conjuro.getConjuros()) {
+						List<Material> mats = c.getIngredientes().getChoices();
+						ItemStack is = new ItemStack(mats.get(0));
+						ItemMeta im = is.getItemMeta();
+						im.setDisplayName(textColor + c.getChatColor() + c.getNombre());
+						is.setItemMeta(im);
+						menuItems.add(is);
+					}
+					ItemStack is = new ItemStack(Material.BARRIER);
 					ItemMeta im = is.getItemMeta();
-					im.setDisplayName(textColor + c.getChatColor() + c.getNombre());
+					im.setDisplayName(textColor + "Ninguno");
 					is.setItemMeta(im);
-					menu.addItem(is);
-				}
-				ItemStack is = new ItemStack(Material.BARRIER);
-				ItemMeta im = is.getItemMeta();
-				im.setDisplayName(textColor + "Ninguno");
-				is.setItemMeta(im);
-				menu.addItem(is);
+					menuItems.add(is);
+					MenuConjuros menu = new MenuConjuros(menuItems);
 
-				((Player) sender).openInventory(menu);
+					menu.openInventory(mago);
+				}
 			} else {
 				String conjuros = header + "Conjuros y sus ingredientes:";
 				for (Conjuro c : Conjuro.getConjuros()) {
@@ -329,15 +348,15 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				if (varita == null) {
 					mago.sendMessage(header + "Debe tener una varita en su mano para comprobar su sinergia con ella.");
 				} else {
-//					float numV = varita.getNumeroMagico();
-//					mago.sendMessage(header + "Su varita tenía el número mágico " + numV);
+					// float numV = varita.getNumeroMagico();
+					// mago.sendMessage(header + "Su varita tenía el número mágico " + numV);
 					float numP = Varita.getOrGenerateNumero(mago);
 					if (args.length == 1 || args[1] == "100") {
 						varita.setNumeroMagico(numP);
 					} else {
 						varita.setNumeroMagico(Float.parseFloat(args[1]));
 					}
-//					mago.sendMessage(header + "Y ahora tiene el número mágico " + varita.getNumeroMagico() + " - "+varita.getPotencia(mago)+"% potencia.");
+					// mago.sendMessage(header + "Y ahora tiene el número mágico " + varita.getNumeroMagico() + " - "+varita.getPotencia(mago)+"% potencia.");
 					varita.cambiarConjuro(null);
 					varita.setHack(true);
 					mago.getInventory().setItemInMainHand(varita);

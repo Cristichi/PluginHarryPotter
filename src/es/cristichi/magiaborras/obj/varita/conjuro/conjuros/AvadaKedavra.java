@@ -16,24 +16,22 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class AvadaKedavra extends Conjuro {
 	
 	public AvadaKedavra(Plugin plugin) {
-		super(plugin, "avada_kedavra", "Avada Kedavra",
+		super(plugin, "avada_kedavra", "Avada Kedavra", "La maldición asesina.",
 				new MaterialChoice(Material.DRAGON_HEAD, Material.CREEPER_HEAD, Material.PLAYER_HEAD,
 						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
-				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, TipoProyectil.COHETE);
+				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, "");
 	}
 
 	@Override
 	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double cdr,
-			boolean avisar, boolean palabrasMagicas) {
-		return super.puedeLanzar(plugin, mago, victima, varita, varita.isHack() ? cdr + 0.8 : cdr, avisar,
-				palabrasMagicas);
+			boolean avisar) {
+		return super.puedeLanzar(plugin, mago, victima, varita, varita.isHack() ? 0.5 : 1, avisar);
 	}
 
 	@Override

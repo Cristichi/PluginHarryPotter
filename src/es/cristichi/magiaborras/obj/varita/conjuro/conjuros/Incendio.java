@@ -14,15 +14,15 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class Incendio extends Conjuro {
 
 	public Incendio(Plugin plugin) {
-		super(plugin, "incendio", "Incendio", new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
+		super(plugin, "incendio", "Incendio", "FUEGO FUEGOOOO MUAJAJAJAJAJAJAJA",
+				new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.DISTANCIA_BLOQUE),
-				ChatColor.RED + "", Color.RED, 60, TipoProyectil.COHETE);
+				ChatColor.RED + "", Color.RED, 0, "");
 	}
 
 	@Override
@@ -35,12 +35,12 @@ public class Incendio extends Conjuro {
 			centro = victima.getLocation();
 		}
 		int radio = (int) (2 * potencia) + 2;
-		potencia *= 0.8;
+		double probPorBloque = potencia;
 		for (int i = -radio + 1; i < radio; i++) {
 			for (int j = -radio + 1; j < radio; j++) {
 				for (int k = -radio + 1; k < radio; k++) {
-					Block lego = centro.getWorld().getBlockAt(centro.add(i, j, k));
-					if (Math.random() < potencia && lego.getType().name().contains("AIR")) {
+					Block lego = centro.getWorld().getBlockAt(centro.clone().add(i, j, k));
+					if (lego.getType().name().contains("AIR") && Math.random() < probPorBloque) {
 						lego.setType(Material.FIRE);
 					}
 				}

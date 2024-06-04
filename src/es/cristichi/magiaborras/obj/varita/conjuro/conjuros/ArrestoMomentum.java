@@ -19,15 +19,15 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class ArrestoMomentum extends Conjuro {
 
 	public ArrestoMomentum(Plugin plugin) {
-		super(plugin, "arresto_momentum", "Arresto Momentum", new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
-				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 120,
-				TipoProyectil.INVISIBLE);
+		super(plugin, "arresto_momentum", "Arresto Momentum",
+				"Te detiene a ti y a todas las entidades de tu alrededor. ¡Útil para saltar por precipicios!",
+				new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
+				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 120, "");
 	}
 
 	@Override

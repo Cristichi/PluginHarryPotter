@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -22,24 +21,24 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 
+//TODO: hacer el aparicio este para aparecerse en otro sitio, en plan sethome
 public abstract class Conjuro {
 
 	private static HashMap<String, Conjuro> CONJUROS = new HashMap<>(20);
-	
+
 	@Nullable
 	public static Conjuro getConjuro(String id) {
 		return CONJUROS.get(id);
 	}
-	
+
 	public static Collection<Conjuro> getConjuros() {
 		return CONJUROS.values();
 	}
-	
+
 	protected String id;
-	protected String nombre;
+	protected String nombre, desc;
 	protected MaterialChoice ingredientes;
 	protected TiposLanzamiento tiposLanzamiento;
-	protected TipoProyectil tipoProyectil;
 	protected String chatColor;
 	protected Color color;
 	protected int cooldownTicks;
@@ -52,27 +51,6 @@ public abstract class Conjuro {
 	protected static int cdMensajeCd = 20;
 	protected static int cdMensajePalabrasMagicas = 40;
 
-	protected Conjuro(Plugin plugin, String id, String nombre, MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento,
-			String chatColor, Color color, int cooldownTicks, TipoProyectil tipoProyectil) {
-		
-		this(plugin, id, nombre, ingredientes, tiposLanzamiento, chatColor, color, cooldownTicks,
-				ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!", tipoProyectil);
-	}
-
-	protected Conjuro(Plugin plugin, String id, String nombre, Material ingrediente, TiposLanzamiento tiposLanzamiento,
-			String chatColor, Color color, int cooldownTicks, TipoProyectil tipoProyectil) {
-		
-		this(plugin, id, nombre, new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks,
-				tipoProyectil);
-	}
-
-	protected Conjuro(Plugin plugin, String id, String nombre, Material ingrediente, TiposLanzamiento tiposLanzamiento,
-			String chatColor, Color color, int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
-		
-		this(plugin, id, nombre, new MaterialChoice(ingrediente), tiposLanzamiento, chatColor, color, cooldownTicks,
-				palabrasMagicas, tipoProyectil);
-	}
-
 	/**
 	 * Para las palabras mágicas se puede usar:<br>
 	 * {nombre} Para el nombre del Conjuro<br>
@@ -84,13 +62,14 @@ public abstract class Conjuro {
 	 * @param chatColor
 	 * @param color
 	 * @param cooldownTicks
-	 * @param palabrasMagicas
-	 * @param tipoProyectil    El tipo de proyectil que usa el hechizo
+	 * @param palabrasMagicas String vacío "" si quieres que sean las por defecto. null si quieres que no se usen.
+	 * @param tipoProyectil El tipo de proyectil que usa el hechizo
 	 */
-	protected Conjuro(Plugin plugin, String id, String nombre, MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento,
-			String chatColor, Color color, int cooldownTicks, String palabrasMagicas, TipoProyectil tipoProyectil) {
+	protected Conjuro(Plugin plugin, String id, String nombre, String desc, MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento,
+			String chatColor, Color color, int cooldownTicks, String palabrasMagicas) {
 		this.id = id;
 		this.nombre = nombre;
+		this.desc = desc;
 		char[] cs = nombre.toCharArray();
 		boolean nextMayus = true;
 		for (int i = 0; i < cs.length; i++) {
@@ -105,17 +84,16 @@ public abstract class Conjuro {
 		nombre = new String(cs);
 		this.chatColor = chatColor;
 		this.tiposLanzamiento = tiposLanzamiento;
-		this.tipoProyectil = tipoProyectil;
 		this.color = color;
 		this.cooldownTicks = cooldownTicks;
 		this.ingredientes = ingredientes;
-		this.palabras = palabrasMagicas;
+		this.palabras = palabrasMagicas == "" ? ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!" : palabrasMagicas;
 		metaFlechaNombre = id;
 		metaFlecha = new FixedMetadataValue(plugin, new FixedMetadataValue(plugin, true));
 		
 		CONJUROS.put(id, this);
 	}
-	
+
 	public String getId() {
 		return id;
 	}
@@ -124,12 +102,12 @@ public abstract class Conjuro {
 		return nombre;
 	}
 
-	public boolean isTipoLanzamiento(TipoLanzamiento tipo) {
-		return tiposLanzamiento.contains(tipo);
+	public String getDesc() {
+		return desc;
 	}
 
-	public boolean isTipoProyectil(TipoProyectil tipo) {
-		return tipoProyectil.equals(tipo);
+	public boolean isTipoLanzamiento(TipoLanzamiento tipo) {
+		return tiposLanzamiento.contains(tipo);
 	}
 
 	public String getChatColor() {
@@ -152,10 +130,7 @@ public abstract class Conjuro {
 		if (palabras == null) {
 			return null;
 		}
-		return palabras.replace("{nombre}", nombre)
-				.replace("{chatcolor}", chatColor)
-				.replace("{atacante}", atacante)
-				;
+		return palabras.replace("{nombre}", nombre).replace("{chatcolor}", chatColor).replace("{atacante}", atacante);
 	}
 
 	public String getMetaNombre() {
@@ -174,17 +149,27 @@ public abstract class Conjuro {
 		cds.put(p.getUniqueId(), p.getTicksLived());
 	}
 
-	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double cdr,
-			boolean avisar, boolean palabrasMagicas) {
+	/**
+	 * 
+	 * @param  plugin
+	 * @param  mago
+	 * @param  victima
+	 * @param  varita
+	 * @param  multCD  valor por el que se multiplica el CD. Por defecto es 1.
+	 * @param  avisoCD Normalmente "true". Si "false", no dirá a quien castea esto que tiene CD, útil si el CD es bajito.
+	 * @return
+	 */
+	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double multCD,
+			boolean avisoCD) {
 		boolean puede = true;
 		int ticks = mago.getTicksLived();
 		if (mago.hasPermission(plugin.USE)) {
 			if (cooldownTicks > 0) {
 				if (cds.containsKey(mago.getUniqueId())) {
-					int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks - (int) (cooldownTicks * cdr);
+					int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks - (int) (cooldownTicks * multCD);
 					if (ticksObj > ticks) {
 						puede = false;
-						if (avisar) {
+						if (avisoCD) {
 							int espera = (int) ((ticksObj - ticks) / 20);
 							if (!mensajes.containsKey(mago.getUniqueId())
 									|| mensajes.get(mago.getUniqueId()) + cdMensajeCd <= ticks) {
@@ -199,47 +184,50 @@ public abstract class Conjuro {
 			}
 		} else {
 			puede = false;
-			if (avisar)
+			if (avisoCD)
 				mago.sendMessage(MagiaPlugin.header + plugin.errorColor + "No puedes usar Magia.");
-		}
-		if (palabrasMagicas && puede && palabras != null) {
-			if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
-					|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
-				String nombre = mago.getCustomName() == null ? mago.getName() : mago.getCustomName();
-				AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre), new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
-				Bukkit.getPluginManager().callEvent(event);
-				plugin.getLogger().info("XDDD" + event.getFormat());
-				plugin.getServer().broadcastMessage(event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
-//				mago.chat(getPalabrasMagicas(nombre));
-			}
-			mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
 		}
 		return puede;
 	}
 
 	public void Accionar(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, boolean ignorarPuede) {
+			TipoLanzamiento tipoLanzamiento, boolean ignorarPuede, boolean usarPalabrasMagicas) {
 		if (varita == null) {
 			return;
 		}
-		if (ignorarPuede || puedeLanzar(plugin, mago, victima, varita, 0, !ignorarPuede, !ignorarPuede)) {
+		if (ignorarPuede || puedeLanzar(plugin, mago, victima, varita, 0, !ignorarPuede)) {
 			int ticks = mago.getTicksLived();
 			cds.put(mago.getUniqueId(), ticks);
 			mensajes.put(mago.getUniqueId(), ticks);
+			if (usarPalabrasMagicas && palabras != null) {
+				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
+						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
+					String nombre = mago.getCustomName() == null ? mago.getName() : mago.getCustomName();
+					AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre),
+							new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
+					Bukkit.getPluginManager().callEvent(event);
+					// ("XDDD" + event.getFormat());
+					plugin.getServer().broadcastMessage(
+							event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
+					// mago.chat(getPalabrasMagicas(nombre));
+				}
+				mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
+			}
 			Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento, varita.getPotencia(mago));
 		}
 	}
 
 	/**
 	 * Ésta es la acción que hace el conjuro. Puedes comprobar qué entidad o bloque mira el jugador, al igual que datos como la varita usada, el tipo de lanzamiento que triggerea esto, etc.
-	 * @param plugin
-	 * @param mago
-	 * @param victima
-	 * @param bloque
-	 * @param varita
-	 * @param tipoLanzamiento
-	 * @param potencia
-	 * @return "true" si se lanzó y actuó para que se ponga en CD, "false" si no. 
+	 * 
+	 * @param  plugin
+	 * @param  mago
+	 * @param  victima
+	 * @param  bloque
+	 * @param  varita
+	 * @param  tipoLanzamiento
+	 * @param  potencia
+	 * @return                 "true" si se lanzó y actuó para que se ponga en CD, "false" si no.
 	 */
 	public abstract boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
 			TipoLanzamiento tipoLanzamiento, float potencia);

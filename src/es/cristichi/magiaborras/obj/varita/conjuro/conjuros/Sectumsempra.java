@@ -10,21 +10,22 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
 
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class Sectumsempra extends Conjuro {
 
 	public Sectumsempra(Plugin plugin) {
-		super(plugin, "sectumsempra", "Sectumsempra", Material.REDSTONE,
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.DARK_RED + "",
-				Color.fromRGB(115, 0, 0), 1000, TipoProyectil.COHETE);
+		super(plugin, "sectumsempra", "Sectumsempra",
+				"¿Sos cirujano? A ver, nombra todos los cortes que se puede hacer a los interiores de la persona humana.",
+				new MaterialChoice(Material.REDSTONE), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				ChatColor.DARK_RED + "", Color.fromRGB(115, 0, 0), 1000, "");
 	}
 
 	@Override
@@ -40,7 +41,7 @@ public class Sectumsempra extends Conjuro {
 			double damage = victimaViva.getHealth() * potencia / repes;
 			victima.getLocation().getWorld().spawnParticle(Particle.CRIT, ((LivingEntity) victima).getEyeLocation(), 15,
 					0.1, 0.1, 0.1);
-			
+
 			int idDamage = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 				@Override
 				public void run() {
@@ -54,7 +55,7 @@ public class Sectumsempra extends Conjuro {
 					}
 				}
 			}, delay, wait);
-			
+
 			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 				@Override
 				public void run() {

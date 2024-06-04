@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -17,15 +18,14 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class PetrificusTotalus extends Conjuro {
 
 	public PetrificusTotalus(Plugin plugin) {
-		super(plugin, "petrificustotalus", "Petrificus Totalus", Material.STONE,
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "", Color.WHITE, 500,
-				TipoProyectil.INVISIBLE);
+		super(plugin, "petrificustotalus", "Petrificus Totalus",
+				"Detiene una entidad donde está. Útil para traicionar amigos.", new MaterialChoice(Material.STONE),
+				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "", Color.WHITE, 500, "");
 	}
 
 	@Override

@@ -25,15 +25,14 @@ import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoProyectil;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class Morsmordre extends Conjuro {
 
 	public Morsmordre(Plugin plugin) {
-		super(plugin, "morsmordre", "Morsmordre", new MaterialChoice(Material.TOTEM_OF_UNDYING),
-				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.DARK_GREEN + "", Color.GREEN, 60000, null,
-				TipoProyectil.INVISIBLE);
+		super(plugin, "morsmordre", "Morsmordre", "¿Sos malvado? A ver la serpiente, a ver que la vea.",
+				new MaterialChoice(Material.TOTEM_OF_UNDYING), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+				ChatColor.DARK_GREEN + "", Color.GREEN, 60000, "");
 	}
 
 	@Override
@@ -41,7 +40,6 @@ public class Morsmordre extends Conjuro {
 			TipoLanzamiento tipoLanzamiento, float potencia) {
 		Location loc = mago.getLocation().add(0, 50, 0);
 		World mundo = loc.getWorld();
-		// TODO: Yo creo que se puede quitar lo del armor stand este
 		ArmorStand vfx = (ArmorStand) mundo.spawnEntity(loc, EntityType.ARMOR_STAND);
 		vfx.setVisible(false);
 		vfx.setCollidable(false);
@@ -52,7 +50,7 @@ public class Morsmordre extends Conjuro {
 				player.sendMessage(MagiaPlugin.header + "¡Alguien ha invocado la Marca Tenebrosa!");
 			}
 		}
-		
+
 		int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			boolean alt = true;
 
@@ -83,7 +81,7 @@ public class Morsmordre extends Conjuro {
 				vfx.remove();
 			}
 		}, getCooldownTicks());
-		
+
 		vfx.getPersistentDataContainer().set(new NamespacedKey(plugin, "efectoMorsmordre"), PersistentDataType.INTEGER,
 				id);
 		return true;
