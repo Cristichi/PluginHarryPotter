@@ -153,7 +153,6 @@ public class RedFlu implements Listener {
 						nombre = nombreOG + " " + cont;
 					}
 					RED_FLU.put(nombre, new ChimeneaFlu(loc, nombre, mago.getName()));
-					mago.sendMessage(loc.getBlock().getType().name());
 					mago.sendMessage("");
 					mago.sendMessage(MagiaPlugin.header + "Has registrado tu chimenea en la " + ChatColor.GREEN
 							+ "Red Flu" + MagiaPlugin.mainColor + ".");

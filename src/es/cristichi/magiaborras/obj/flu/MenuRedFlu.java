@@ -125,7 +125,7 @@ public class MenuRedFlu implements Listener {
 					tp.setDirection(new Vector(0, 0, -1));
 				}
 				
-				final Location finalTp = tp.clone();
+				final Location finalTp = tp.clone().add(0, 1, 0);
 				
 				final DustTransition dustTransition = new DustTransition(Color.fromRGB(0, 255, 0), Color.fromRGB(255, 255, 255),
 						3F);
