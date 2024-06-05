@@ -1,7 +1,7 @@
 name: MagiaBorras
 main: es.cristichi.magiaborras.main.MagiaPlugin
 depend: []
-version: 1.7.1
+version: 1.7.002
 api-version: 1.13
 commands:
   magia:

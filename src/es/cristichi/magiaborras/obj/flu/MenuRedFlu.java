@@ -106,6 +106,7 @@ public class MenuRedFlu implements Listener {
 		ItemStack mano = mago.getInventory().getItemInMainHand();
 		if (RedFlu.POLVOS.contains(mano.getType())) {
 			mago.closeInventory();
+				mago.sendMessage(MagiaPlugin.header+"Buscando el nombre a "+clickedItem.getItemMeta().getDisplayName());
 				Location tp = RedFlu.getChimeneaFlu(clickedItem.getItemMeta().getDisplayName()).getLoc();
 				Location tp1x = tp.clone().add(1, 0, 0);
 				Location tp1z = tp.clone().add(0, 0, 1);
@@ -145,9 +146,6 @@ public class MenuRedFlu implements Listener {
 					mago.playSound(finalTp, mago.getFallDamageSoundBig(), 1f, 1f);
 				}
 			}, 20);
-		} else {
-			mago.sendMessage(MagiaPlugin.header + "Necesitas tener " + MagiaPlugin.accentColor + RedFlu.POLVOS.get(0)
-					+ MagiaPlugin.mainColor + " en la mano para usar la Red Flu.");
 		}
 
 	}

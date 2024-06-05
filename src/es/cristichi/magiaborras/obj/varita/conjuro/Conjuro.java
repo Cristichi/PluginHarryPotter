@@ -173,9 +173,9 @@ public abstract class Conjuro {
 							int espera = (int) ((ticksObj - ticks) / 20);
 							if (!mensajes.containsKey(mago.getUniqueId())
 									|| mensajes.get(mago.getUniqueId()) + cdMensajeCd <= ticks) {
-								mago.sendMessage(MagiaPlugin.header + "Debes esperar " + plugin.accentColor + espera
-										+ plugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
-										+ plugin.textColor + ".");
+								mago.sendMessage(MagiaPlugin.header + "Debes esperar " + MagiaPlugin.accentColor + espera
+										+ MagiaPlugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
+										+ MagiaPlugin.textColor + ".");
 								mensajes.put(mago.getUniqueId(), ticks);
 							}
 						}
@@ -185,7 +185,7 @@ public abstract class Conjuro {
 		} else {
 			puede = false;
 			if (avisoCD)
-				mago.sendMessage(MagiaPlugin.header + plugin.errorColor + "No puedes usar Magia.");
+				mago.sendMessage(MagiaPlugin.header + MagiaPlugin.errorColor + "No puedes usar Magia.");
 		}
 		return puede;
 	}

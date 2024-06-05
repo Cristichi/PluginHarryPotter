@@ -11,6 +11,7 @@ import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
@@ -30,9 +31,19 @@ public class WingardiumLeviosa extends Conjuro {
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
 			TipoLanzamiento tipoLanzamiento, float potencia) {
-		if (victima instanceof LivingEntity) {
-			int ticks = (int) (8 * potencia) + 2;
-			((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
+		if (victima != null) {
+			if (victima instanceof LivingEntity) {
+				int ticks = (int) (8 * potencia) + 2;
+				((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
+				victima.setVelocity(victima.getVelocity().add(new Vector(0, .1, 0)));
+//				Bukkit.getLogger().info("LivingEntity: " + victima.getType());
+//				Bukkit.getLogger().info("Speed: " + victima.getVelocity());
+			} else {
+				victima.setVelocity(victima.getVelocity().add(new Vector(0, .3, 0)));
+//				Bukkit.getLogger().info("Entity: " + victima.getType());
+//				Bukkit.getLogger().info("Speed: " + victima.getVelocity().getX() + " " + victima.getVelocity().getY()
+//						+ " " + victima.getVelocity().getZ());
+			}
 			return true;
 		}
 		return false;

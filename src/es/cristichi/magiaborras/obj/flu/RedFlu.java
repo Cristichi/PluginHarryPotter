@@ -3,6 +3,7 @@ package es.cristichi.magiaborras.obj.flu;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public class RedFlu implements Listener {
 	}
 
 	@EventHandler
-	public void onClickVerde(PlayerInteractEvent e) {
+	public void onClick(PlayerInteractEvent e) {
 		if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 			Player mago = e.getPlayer();
 			Block lego = e.getClickedBlock();
@@ -67,16 +68,48 @@ public class RedFlu implements Listener {
 						InventoryView iv = mago.getOpenInventory();
 						if (iv.getType() == InventoryType.CRAFTING) {
 							ArrayList<ItemStack> items = new ArrayList<>(RED_FLU.size() - 1);
-							for (ChimeneaFlu fuego : RED_FLU.values()) {
-								if (!fuego.getLoc().getBlock().getLocation().equals(lego.getLocation())
+
+							for (Iterator<Map.Entry<String, ChimeneaFlu>> it = RED_FLU.entrySet().iterator(); it
+									.hasNext();) {
+								Map.Entry<String, ChimeneaFlu> entrada = it.next();
+								ChimeneaFlu fuego = entrada.getValue();
+								if (!FUEGO.contains(fuego.getLoc().getBlock().getType())) {
+									it.remove();
+								} else if (!fuego.getLoc().getBlock().getLocation().equals(lego.getLocation())
 										&& !fuego.getLoc().getBlock().getLocation().equals(legoAbajo.getLocation())) {
 									Block b = fuego.getLoc().clone().add(0, -1, 0).getBlock();
 									items.add(MenuRedFlu.createGuiItem(b.getType(), fuego.getNombre(),
 											b.getLocation().toString()));
 								}
 							}
+
 							MenuRedFlu menu = new MenuRedFlu(items);
 							menu.openInventory(mago);
+						}
+					} else if (mano.getType().equals(Material.NAME_TAG)) {
+						Map.Entry<String, ChimeneaFlu> cambiar = null;
+						for (Iterator<Map.Entry<String, ChimeneaFlu>> it = RED_FLU.entrySet().iterator(); it
+								.hasNext();) {
+							Map.Entry<String, ChimeneaFlu> entrada = it.next();
+							ChimeneaFlu fuego = entrada.getValue();
+							if (!FUEGO.contains(fuego.getLoc().getBlock().getType())) {
+								it.remove();
+							} else if (fuego.getLoc().getBlock().getLocation().equals(lego.getLocation())
+									|| fuego.getLoc().getBlock().getLocation().equals(legoAbajo.getLocation())) {
+								entrada.setValue(new ChimeneaFlu(fuego.getLoc(), mano.getItemMeta().getDisplayName(),
+										fuego.getOwner()));
+								cambiar = entrada;
+							}
+						}
+
+						if (cambiar == null) {
+							mago.sendMessage(MagiaPlugin.header+MagiaPlugin.errorColor+"Algo raro pasa con esta Chimenea, no la encuentro en la Red Flu para modificarla :/");
+						} else {
+							RED_FLU.remove(cambiar.getKey());
+							RED_FLU.put(cambiar.getValue().getNombre(), cambiar.getValue());
+							mano.setAmount(mano.getAmount() - 1);
+							mago.getInventory().setItemInMainHand(mano);
+							mago.sendMessage(MagiaPlugin.header+"Cambiado el nombre a "+cambiar.getKey());
 						}
 					} else {
 						mago.sendMessage(MagiaPlugin.header + "Necesitas tener " + MagiaPlugin.accentColor
@@ -114,18 +147,19 @@ public class RedFlu implements Listener {
 				}
 				if (ok) {
 					loc = loc.clone().add(0.5, 0, 0.5);
-					for (Map.Entry<String, ChimeneaFlu> entrada : RED_FLU.entrySet()) {
+					for (Iterator<Map.Entry<String, ChimeneaFlu>> it = RED_FLU.entrySet().iterator(); it.hasNext();) {
+						Map.Entry<String, ChimeneaFlu> entrada = it.next();
 						if (entrada.getValue().getLoc().equals(loc)) {
-							RED_FLU.remove(entrada.getKey());
+							it.remove();
 							mago.sendMessage("");
 							mago.sendMessage(MagiaPlugin.header + "Has roto tu chimenea y ha salido de la "
 									+ ChatColor.GREEN + "Red Flu" + MagiaPlugin.mainColor + ".");
 						} else {
 							Bukkit.getLogger().info("---");
-							Bukkit.getLogger().info("Loc 1: "+entrada.getValue().getLoc());
-							Bukkit.getLogger().info("Loc 2: "+loc);
+							Bukkit.getLogger().info("Loc 1: " + entrada.getValue().getLoc());
+							Bukkit.getLogger().info("Loc 2: " + loc);
 							Bukkit.getLogger().info("---");
-							
+
 						}
 					}
 				}

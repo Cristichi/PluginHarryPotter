@@ -109,14 +109,10 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			try {
 				Scanner lector = new Scanner(archivoChimeneasFlu);
 				while (lector.hasNextLine()) {
-					String lineaChimenea = lector.nextLine(); // String lineaChimenea, simplemente es para ver más clara cada chimenea en el archivo
-					System.out.println("lineaChimenea "+lineaChimenea);
+					lector.nextLine(); // String lineaChimenea, simplemente es para ver más clara cada chimenea en el archivo
 					String lineaNombre = lector.nextLine();
-					System.out.println("lineaNombre "+lineaNombre);
 					String lineaOwner = lector.nextLine();
-					System.out.println("lineaOwner "+lineaOwner);
 					String lineaLoc = lector.nextLine();
-					System.out.println("lineaLoc "+lineaLoc);
 					StringTokenizer tokLoc = new StringTokenizer(lineaLoc, " ");
 					Location loc = new Location(Bukkit.getWorld(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()),
 							Double.parseDouble(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()));
