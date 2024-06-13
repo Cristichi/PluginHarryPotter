@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -25,7 +26,8 @@ public class Sectumsempra extends Conjuro {
 		super(plugin, "sectumsempra", "Sectumsempra",
 				"¿Sos cirujano? A ver, nombra todos los cortes que se puede hacer a los interiores de la persona humana.",
 				new MaterialChoice(Material.REDSTONE), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
-				ChatColor.DARK_RED + "", Color.fromRGB(115, 0, 0), 1000, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.DARK_RED + "",
+				Color.fromRGB(115, 0, 0), 1000, "");
 	}
 
 	@Override

@@ -4,12 +4,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Particle.DustTransition;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,6 +22,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
@@ -39,6 +46,7 @@ public abstract class Conjuro {
 	protected String nombre, desc;
 	protected MaterialChoice ingredientes;
 	protected TiposLanzamiento tiposLanzamiento;
+	protected EfectoVisual[] efectosVisuales;
 	protected String chatColor;
 	protected Color color;
 	protected int cooldownTicks;
@@ -62,11 +70,12 @@ public abstract class Conjuro {
 	 * @param chatColor
 	 * @param color
 	 * @param cooldownTicks
-	 * @param palabrasMagicas String vacío "" si quieres que sean las por defecto. null si quieres que no se usen.
-	 * @param tipoProyectil El tipo de proyectil que usa el hechizo
+	 * @param palabrasMagicas  String vacío "" si quieres que sean las por defecto. null si quieres que no se usen.
+	 * @param tipoProyectil    El tipo de proyectil que usa el hechizo
 	 */
-	protected Conjuro(Plugin plugin, String id, String nombre, String desc, MaterialChoice ingredientes, TiposLanzamiento tiposLanzamiento,
-			String chatColor, Color color, int cooldownTicks, String palabrasMagicas) {
+	protected Conjuro(Plugin plugin, String id, String nombre, String desc, MaterialChoice ingredientes,
+			TiposLanzamiento tiposLanzamiento, EfectoVisual[] efectosVisuales, String chatColor, Color color,
+			int cooldownTicks, String palabrasMagicas) {
 		this.id = id;
 		this.nombre = nombre;
 		this.desc = desc;
@@ -84,13 +93,15 @@ public abstract class Conjuro {
 		nombre = new String(cs);
 		this.chatColor = chatColor;
 		this.tiposLanzamiento = tiposLanzamiento;
+		this.efectosVisuales = efectosVisuales;
 		this.color = color;
 		this.cooldownTicks = cooldownTicks;
 		this.ingredientes = ingredientes;
-		this.palabras = palabrasMagicas == "" ? ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!" : palabrasMagicas;
+		this.palabras = palabrasMagicas == "" ? ChatColor.RESET + "¡{chatcolor}{nombre}" + ChatColor.RESET + "!"
+				: palabrasMagicas;
 		metaFlechaNombre = id;
 		metaFlecha = new FixedMetadataValue(plugin, new FixedMetadataValue(plugin, true));
-		
+
 		CONJUROS.put(id, this);
 	}
 
@@ -108,6 +119,10 @@ public abstract class Conjuro {
 
 	public boolean isTipoLanzamiento(TipoLanzamiento tipo) {
 		return tiposLanzamiento.contains(tipo);
+	}
+
+	public EfectoVisual[] getEfectosVisuales() {
+		return efectosVisuales;
 	}
 
 	public String getChatColor() {
@@ -173,9 +188,9 @@ public abstract class Conjuro {
 							int espera = (int) ((ticksObj - ticks) / 20);
 							if (!mensajes.containsKey(mago.getUniqueId())
 									|| mensajes.get(mago.getUniqueId()) + cdMensajeCd <= ticks) {
-								mago.sendMessage(MagiaPlugin.header + "Debes esperar " + MagiaPlugin.accentColor + espera
-										+ MagiaPlugin.textColor + " segundos para volver a lanzar " + chatColor + toString()
-										+ MagiaPlugin.textColor + ".");
+								mago.sendMessage(MagiaPlugin.header + "Debes esperar " + MagiaPlugin.accentColor
+										+ espera + MagiaPlugin.textColor + " segundos para volver a lanzar " + chatColor
+										+ toString() + MagiaPlugin.textColor + ".");
 								mensajes.put(mago.getUniqueId(), ticks);
 							}
 						}
@@ -197,8 +212,9 @@ public abstract class Conjuro {
 		}
 		if (ignorarPuede || puedeLanzar(plugin, mago, victima, varita, 0, !ignorarPuede)) {
 			int ticks = mago.getTicksLived();
-			cds.put(mago.getUniqueId(), ticks);
 			mensajes.put(mago.getUniqueId(), ticks);
+
+			// Palabras mágicas
 			if (usarPalabrasMagicas && palabras != null) {
 				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
 						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
@@ -206,14 +222,86 @@ public abstract class Conjuro {
 					AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre),
 							new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
 					Bukkit.getPluginManager().callEvent(event);
-					// ("XDDD" + event.getFormat());
 					plugin.getServer().broadcastMessage(
 							event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
-					// mago.chat(getPalabrasMagicas(nombre));
 				}
 				mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
 			}
-			Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento, varita.getPotencia(mago));
+			// Lanzamos el conjuro
+			if (Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento, varita.getPotencia(mago))) {
+				// Si el conjuro se lanzó con éxito, hacemos lo siguiente.
+
+				// Efectos mágicos
+				final int totalTicksParticulas = cooldownTicks;
+				final int periodoParticulas = 1;
+				final int totalVecesParticulas = totalTicksParticulas / periodoParticulas;
+				final DustTransition dustTransitionParticulas = new DustTransition(getColor(), getColor(), 1F);
+
+				final int radioOnda = 1;
+				
+				for (EfectoVisual efectoVisual : efectosVisuales) {
+					switch (efectoVisual) {
+					case PARTICULAS: {
+						Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Consumer<BukkitTask>() {
+							int cont = 0;
+
+							@Override
+							public void accept(BukkitTask task) {
+								if (cont > totalVecesParticulas) {
+									task.cancel();
+								} else {
+									mago.spawnParticle(Particle.DUST_COLOR_TRANSITION,
+											mago.getEyeLocation().clone().add(0, -0.2, 0), 1, 0, 0.5, 0,
+											dustTransitionParticulas);
+								}
+								cont++;
+							}
+						}, 0, periodoParticulas);
+						break;
+					}
+					case RAYITO: {
+						Location objetivo = null;
+						if (tipoLanzamiento.equals(TipoLanzamiento.DISTANCIA_ENTIDAD) && victima != null) {
+							objetivo = victima.getLocation().clone().add(0, victima.getHeight() * 2 / 4, 0);
+						} else if (tipoLanzamiento.equals(TipoLanzamiento.DISTANCIA_BLOQUE) && bloque != null) {
+							objetivo = bloque.getLocation().clone().add(0.5, 0.5, 0.5);
+						}
+
+						if (objetivo != null) {
+							final DustTransition dustTransitionRayito = new DustTransition(getColor(), getColor(), 1F);
+							Location actual = mago.getEyeLocation().clone().add(0, -0.2, 0);
+							Vector paso = objetivo.toVector().clone().subtract(actual.toVector()).normalize()
+									.multiply(0.5);
+
+							while (actual.distance(objetivo) > 1) {
+								mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, actual, 1, 0, 0, 0,
+										dustTransitionRayito);
+								actual.add(paso);
+							}
+						}
+						break;
+					}
+					case ONDA: {
+						final DustTransition dustTransitionOnda = new DustTransition(getColor(),
+								getColor().setAlpha(0).setGreen(255), 1F);
+						Location centro = mago.getLocation().clone().add(0, -0.1, 0);
+						mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, centro, 5555, radioOnda, 0.1, radioOnda,
+								dustTransitionOnda);
+						break;
+					}
+
+					default: {
+						plugin.getLogger().log(Level.SEVERE, "Error al intentar cargar los efectos visuales.",
+								new IllegalArgumentException("Efecto visual no existe: " + efectoVisual.name() + "."));
+						break;
+					}
+					}
+				}
+
+				// Ponemos en CD marcando el tiempo que el mago terminó este conjuro.
+				cds.put(mago.getUniqueId(), mago.getTicksLived());
+			} else {
+			}
 		}
 	}
 

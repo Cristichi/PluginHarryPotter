@@ -19,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -28,7 +29,7 @@ public class FiniteIncantatem extends Conjuro {
 	public FiniteIncantatem(Plugin plugin) {
 		super(plugin, "finite_incantatem", "Finite Incantatem", "Detiene el Morsmorde. No tiene más usos la verdad.",
 				new MaterialChoice(Material.WATER_BUCKET), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
-				ChatColor.DARK_GRAY + "", Color.WHITE, 0, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.ONDA }, ChatColor.DARK_GRAY + "", Color.WHITE, 0, "");
 		key = new NamespacedKey(plugin, "efectoMorsmordre");
 	}
 

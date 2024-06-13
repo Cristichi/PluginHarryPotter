@@ -18,6 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -27,7 +28,9 @@ public class ArrestoMomentum extends Conjuro {
 		super(plugin, "arresto_momentum", "Arresto Momentum",
 				"Te detiene a ti y a todas las entidades de tu alrededor. ¡Útil para saltar por precipicios!",
 				new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
-				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO), ChatColor.AQUA + "", Color.AQUA, 120, "");
+				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.ONDA }, ChatColor.AQUA + "", Color.AQUA, 120,
+				"");
 	}
 
 	@Override

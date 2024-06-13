@@ -24,6 +24,7 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -32,7 +33,7 @@ public class Morsmordre extends Conjuro {
 	public Morsmordre(Plugin plugin) {
 		super(plugin, "morsmordre", "Morsmordre", "¿Sos malvado? A ver la serpiente, a ver que la vea.",
 				new MaterialChoice(Material.TOTEM_OF_UNDYING), new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
-				ChatColor.DARK_GREEN + "", Color.GREEN, 60000, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS }, ChatColor.DARK_GREEN + "", Color.GREEN, 60000, "");
 	}
 
 	@Override

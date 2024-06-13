@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -22,7 +23,9 @@ public class Stupify extends Conjuro {
 		super(plugin, "stupify", "Stupify", "El conjuro de daño básico. Hace pupa y ya.",
 				new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
 						Material.COBBLESTONE_WALL),
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.RED + "", Color.RED, 20, "");
+				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.RED + "", Color.RED, 20,
+				"");
 	}
 
 	@Override

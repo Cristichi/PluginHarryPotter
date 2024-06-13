@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -25,7 +26,9 @@ public class PetrificusTotalus extends Conjuro {
 	public PetrificusTotalus(Plugin plugin) {
 		super(plugin, "petrificustotalus", "Petrificus Totalus",
 				"Detiene una entidad donde está. Útil para traicionar amigos.", new MaterialChoice(Material.STONE),
-				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD), ChatColor.BOLD + "", Color.WHITE, 500, "");
+				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO, EfectoVisual.ONDA }, ChatColor.BOLD + "", Color.WHITE,
+				500, "");
 	}
 
 	@Override

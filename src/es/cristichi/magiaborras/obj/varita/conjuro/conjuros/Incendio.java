@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -22,7 +23,7 @@ public class Incendio extends Conjuro {
 		super(plugin, "incendio", "Incendio", "FUEGO FUEGOOOO MUAJAJAJAJAJAJAJA",
 				new MaterialChoice(Material.FLINT_AND_STEEL, Material.FIRE_CHARGE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.DISTANCIA_BLOQUE),
-				ChatColor.RED + "", Color.RED, 200, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.RED + "", Color.RED, 200, "");
 	}
 
 	@Override

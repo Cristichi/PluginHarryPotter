@@ -16,6 +16,7 @@ import org.bukkit.util.Vector;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
 import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
@@ -25,7 +26,7 @@ public class WingardiumLeviosa extends Conjuro {
 		super(plugin, "wingardiumleviosa", "Wingardium Leviosa",
 				"Mantén el ratón mientras miras fijamente a una persona y verás qué risa.",
 				new MaterialChoice(Material.FEATHER), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
-				ChatColor.GRAY + "", Color.GRAY, 0, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS }, ChatColor.GRAY + "", Color.GRAY, 0, "");
 	}
 
 	@Override
@@ -36,13 +37,13 @@ public class WingardiumLeviosa extends Conjuro {
 				int ticks = (int) (8 * potencia) + 2;
 				((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
 				victima.setVelocity(victima.getVelocity().add(new Vector(0, .1, 0)));
-//				Bukkit.getLogger().info("LivingEntity: " + victima.getType());
-//				Bukkit.getLogger().info("Speed: " + victima.getVelocity());
+				// Bukkit.getLogger().info("LivingEntity: " + victima.getType());
+				// Bukkit.getLogger().info("Speed: " + victima.getVelocity());
 			} else {
 				victima.setVelocity(victima.getVelocity().add(new Vector(0, .3, 0)));
-//				Bukkit.getLogger().info("Entity: " + victima.getType());
-//				Bukkit.getLogger().info("Speed: " + victima.getVelocity().getX() + " " + victima.getVelocity().getY()
-//						+ " " + victima.getVelocity().getZ());
+				// Bukkit.getLogger().info("Entity: " + victima.getType());
+				// Bukkit.getLogger().info("Speed: " + victima.getVelocity().getX() + " " + victima.getVelocity().getY()
+				// + " " + victima.getVelocity().getZ());
 			}
 			return true;
 		}

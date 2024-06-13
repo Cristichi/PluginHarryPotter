@@ -24,8 +24,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.joml.Math;
 
-import es.cristichi.magiaborras.main.MagiaPlugin;
-
 public class MenuRedFlu implements Listener {
 	private static Plugin plugin;
 
@@ -106,44 +104,45 @@ public class MenuRedFlu implements Listener {
 		ItemStack mano = mago.getInventory().getItemInMainHand();
 		if (RedFlu.POLVOS.contains(mano.getType())) {
 			mago.closeInventory();
-				mago.sendMessage(MagiaPlugin.header+"Buscando el nombre a "+clickedItem.getItemMeta().getDisplayName());
-				Location tp = RedFlu.getChimeneaFlu(clickedItem.getItemMeta().getDisplayName()).getLoc();
-				Location tp1x = tp.clone().add(1, 0, 0);
-				Location tp1z = tp.clone().add(0, 0, 1);
-				Location tpm1x = tp.clone().add(-1, 0, 0);
-				Location tpm1z = tp.clone().add(0, 0, -1);
-				if (RedFlu.ALFOMBRA.contains(tp1x.getBlock().getType())) {
-					tp = tp1x;
-					tp.setDirection(new Vector(1, 0, 0));
-				} else if (RedFlu.ALFOMBRA.contains(tp1z.getBlock().getType())) {
-					tp = tp1z;
-					tp.setDirection(new Vector(0, 0, 1));
-				} else if (RedFlu.ALFOMBRA.contains(tpm1x.getBlock().getType())) {
-					tp = tpm1x;
-					tp.setDirection(new Vector(-1, 0, 0));
-				} else if (RedFlu.ALFOMBRA.contains(tpm1z.getBlock().getType())) {
-					tp = tpm1z;
-					tp.setDirection(new Vector(0, 0, -1));
-				}
-				
-				final Location finalTp = tp.clone().add(0, 1, 0);
-				
-				final DustTransition dustTransition = new DustTransition(Color.fromRGB(0, 255, 0), Color.fromRGB(255, 255, 255),
-						3F);
-				mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 5000, 1, 1, 1, dustTransition);
-				
-				mano.setAmount(mano.getAmount() - 1);
-				mago.getInventory().setItemInMainHand(mano);
-				
-				mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, mago.getLocation(), 5000, 1, 1, 1, dustTransition);
+			ChimeneaFlu chimenea = RedFlu.getChimeneaFlu(clickedItem.getItemMeta().getDisplayName());
+			Location tp = chimenea.getLoc();
+			Location tp1x = tp.clone().add(1, 0, 0);
+			Location tp1z = tp.clone().add(0, 0, 1);
+			Location tpm1x = tp.clone().add(-1, 0, 0);
+			Location tpm1z = tp.clone().add(0, 0, -1);
+			if (RedFlu.ALFOMBRA.contains(tp1x.getBlock().getType())) {
+				tp = tp1x;
+				tp.setDirection(new Vector(1, 0, 0));
+			} else if (RedFlu.ALFOMBRA.contains(tp1z.getBlock().getType())) {
+				tp = tp1z;
+				tp.setDirection(new Vector(0, 0, 1));
+			} else if (RedFlu.ALFOMBRA.contains(tpm1x.getBlock().getType())) {
+				tp = tpm1x;
+				tp.setDirection(new Vector(-1, 0, 0));
+			} else if (RedFlu.ALFOMBRA.contains(tpm1z.getBlock().getType())) {
+				tp = tpm1z;
+				tp.setDirection(new Vector(0, 0, -1));
+			}
+
+			final Location finalTp = tp.clone().add(0, 1, 0);
+
+			mano.setAmount(mano.getAmount() - 1);
+			mago.getInventory().setItemInMainHand(mano);
+
+			final DustTransition dustTransition = new DustTransition(Color.fromRGB(0, 255, 0),
+					Color.fromRGB(255, 255, 255), 3F);
+			mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, mago.getLocation(), 9999, 1, 1, 1, dustTransition);
+			finalTp.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1, dustTransition);
 
 			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 				@Override
 				public void run() {
-					mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 5000, 1, 1, 1, dustTransition);
+					mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1, dustTransition);
+					finalTp.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1,
+							dustTransition);
 					mago.teleport(finalTp, TeleportCause.PLUGIN);
-					mago.playSound(finalTp, mago.getFallDamageSoundBig(), 1f, 1f);
+					mago.playSound(finalTp, mago.getFallDamageSoundBig(), 2f, 1f);
 				}
 			}, 20);
 		}
