@@ -1,17 +1,17 @@
 package es.cristichi.magiaborras.util;
 
-import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 
 public class Targeter {
 
-	public static Player getTargetPlayer(final Player player) {
-		return getTarget(player, player.getWorld().getPlayers());
-	}
+//	public static Player getTargetPlayer(final Player player) {
+//		return getTarget(player, player.getWorld().getPlayers());
+//	}
 
 	public static Entity getTargetEntity(final Entity entity) {
-		return getTarget(entity, entity.getWorld().getEntities());
+//		return getTarget(entity, entity.getWorld().getEntities());
+		return getTarget(entity, entity.getNearbyEntities(50, 50, 50));
 	}
 
 	private static <T extends Entity> T getTarget(final Entity entity, final Iterable<T> entities) {
