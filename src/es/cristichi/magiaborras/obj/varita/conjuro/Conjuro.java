@@ -214,23 +214,24 @@ public abstract class Conjuro {
 			int ticks = mago.getTicksLived();
 			mensajes.put(mago.getUniqueId(), ticks);
 
-			// Palabras mágicas
-			if (usarPalabrasMagicas && palabras != null) {
-				if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
-						|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
-					String nombre = mago.getCustomName() == null ? mago.getName() : mago.getCustomName();
-					AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre),
-							new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
-					Bukkit.getPluginManager().callEvent(event);
-					plugin.getServer().broadcastMessage(
-							event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
-				}
-				mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
-			}
 			// Lanzamos el conjuro
 			if (Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento, varita.getPotencia(mago))) {
 				// Si el conjuro se lanzó con éxito, hacemos lo siguiente.
 
+				// Palabras mágicas
+				if (usarPalabrasMagicas && palabras != null) {
+					if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
+							|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
+						String nombre = mago.getCustomName() == null ? mago.getName() : mago.getCustomName();
+						AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre),
+								new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
+						Bukkit.getPluginManager().callEvent(event);
+						plugin.getServer().broadcastMessage(
+								event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
+					}
+					mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
+				}
+				
 				// Efectos mágicos
 				final int totalTicksParticulas = cooldownTicks;
 				final int periodoParticulas = 1;
@@ -238,7 +239,7 @@ public abstract class Conjuro {
 				final DustTransition dustTransitionParticulas = new DustTransition(getColor(), getColor(), 1F);
 
 				final int radioOnda = 1;
-				
+
 				for (EfectoVisual efectoVisual : efectosVisuales) {
 					switch (efectoVisual) {
 					case PARTICULAS: {
