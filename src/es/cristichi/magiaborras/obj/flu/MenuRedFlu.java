@@ -2,6 +2,7 @@ package es.cristichi.magiaborras.obj.flu;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.joml.Math;
 
@@ -132,19 +134,32 @@ public class MenuRedFlu implements Listener {
 			final DustTransition dustTransition = new DustTransition(Color.fromRGB(0, 255, 0),
 					Color.fromRGB(255, 255, 255), 3F);
 			mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, mago.getLocation(), 9999, 1, 1, 1, dustTransition);
-			finalTp.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1, dustTransition);
 
 			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 				@Override
 				public void run() {
-					mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1, dustTransition);
-					finalTp.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1,
-							dustTransition);
 					mago.teleport(finalTp, TeleportCause.PLUGIN);
 					mago.playSound(finalTp, mago.getFallDamageSoundBig(), 2f, 1f);
 				}
 			}, 20);
+
+			final int period = 5;
+			final int maxTicks = 60;
+			final int max = maxTicks/period;
+			Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Consumer<BukkitTask>() {
+				int count = 0;
+
+				@Override
+				public void accept(BukkitTask task) {
+					if (count++ < max) {
+						finalTp.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, finalTp, 9999, 1, 1, 1,
+								dustTransition);
+					} else {
+						task.cancel();
+					}
+				}
+			}, 0, period);
 		}
 
 	}
