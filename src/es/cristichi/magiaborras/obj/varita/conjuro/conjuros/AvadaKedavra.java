@@ -27,13 +27,7 @@ public class AvadaKedavra extends Conjuro {
 						Material.ZOMBIE_HEAD, Material.SKELETON_SKULL, Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
-				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 1200, "");
-	}
-
-	@Override
-	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double cdr,
-			boolean avisar) {
-		return super.puedeLanzar(plugin, mago, victima, varita, varita.isHack() ? 0.5 : 1, avisar);
+				ChatColor.GREEN + "" + ChatColor.BOLD, Color.GREEN, 18000, "");
 	}
 
 	@Override
