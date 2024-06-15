@@ -229,9 +229,7 @@ public class Varita extends ItemStack {
 				// conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
 			}
 		} catch (Exception e) {
-			System.err.println("La varita no es válida, ¿ha cambiado algo en alguna actualización del plugin?");
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			Bukkit.getLogger().log(Level.WARNING, "La varita no es válida. Es posible que tras una actualización se haya jodido la varita o algo.", e);
 		}
 		return null;
 	}

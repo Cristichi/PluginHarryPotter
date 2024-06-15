@@ -146,7 +146,7 @@ public class MenuRedFlu implements Listener {
 
 			final int period = 5;
 			final int maxTicks = 60;
-			final int max = maxTicks/period;
+			final int max = maxTicks / period;
 			Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Consumer<BukkitTask>() {
 				int count = 0;
 

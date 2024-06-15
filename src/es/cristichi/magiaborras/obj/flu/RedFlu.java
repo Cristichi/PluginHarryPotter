@@ -108,7 +108,7 @@ public class RedFlu implements Listener {
 							RED_FLU.put(cambiar.getValue().getNombre(), cambiar.getValue());
 							mano.setAmount(mano.getAmount() - 1);
 							mago.getInventory().setItemInMainHand(mano);
-							mago.sendMessage(MagiaPlugin.header+"Cambiado el nombre a "+cambiar.getKey());
+							mago.sendMessage(MagiaPlugin.header+"Cambiado el nombre a "+cambiar.getValue().getNombre());
 						}
 					} else {
 						mago.sendMessage(MagiaPlugin.header + "Necesitas tener " + MagiaPlugin.accentColor
