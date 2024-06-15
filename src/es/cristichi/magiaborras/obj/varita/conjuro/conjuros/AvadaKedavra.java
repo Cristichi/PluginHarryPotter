@@ -36,7 +36,6 @@ public class AvadaKedavra extends Conjuro {
 		if (victima instanceof LivingEntity) {
 			LivingEntity victimaViva = (LivingEntity) victima;
 			if (!victimaViva.isDead()) {
-				System.out.println(victimaViva.getName());
 				victimaViva.setHealth(1);
 				victimaViva.damage(9999);
 				victimaViva.playEffect(EntityEffect.HURT_DROWN);

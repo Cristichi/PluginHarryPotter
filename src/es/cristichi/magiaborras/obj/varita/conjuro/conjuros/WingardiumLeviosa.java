@@ -37,13 +37,8 @@ public class WingardiumLeviosa extends Conjuro {
 				int ticks = (int) (8 * potencia) + 2;
 				((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, ticks, 1));
 				victima.setVelocity(victima.getVelocity().add(new Vector(0, .1, 0)));
-				// Bukkit.getLogger().info("LivingEntity: " + victima.getType());
-				// Bukkit.getLogger().info("Speed: " + victima.getVelocity());
 			} else {
 				victima.setVelocity(victima.getVelocity().add(new Vector(0, .3, 0)));
-				// Bukkit.getLogger().info("Entity: " + victima.getType());
-				// Bukkit.getLogger().info("Speed: " + victima.getVelocity().getX() + " " + victima.getVelocity().getY()
-				// + " " + victima.getVelocity().getZ());
 			}
 			return true;
 		}

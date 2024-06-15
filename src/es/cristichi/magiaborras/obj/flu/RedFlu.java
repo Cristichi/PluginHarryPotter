@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -154,12 +153,6 @@ public class RedFlu implements Listener {
 							mago.sendMessage("");
 							mago.sendMessage(MagiaPlugin.header + "Has roto tu chimenea y ha salido de la "
 									+ ChatColor.GREEN + "Red Flu" + MagiaPlugin.mainColor + ".");
-						} else {
-							Bukkit.getLogger().info("---");
-							Bukkit.getLogger().info("Loc 1: " + entrada.getValue().getLoc());
-							Bukkit.getLogger().info("Loc 2: " + loc);
-							Bukkit.getLogger().info("---");
-
 						}
 					}
 				}
