@@ -1,34 +1,35 @@
 package es.cristichi.magiaborras.util;
 
+import java.util.function.Predicate;
+
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
+import org.bukkit.entity.Player;
+import org.bukkit.util.RayTraceResult;
 
 public class Targeter {
+	private static double RANGO_MAX = 50000;
 
-//	public static Player getTargetPlayer(final Player player) {
-//		return getTarget(player, player.getWorld().getPlayers());
-//	}
-
-	public static Entity getTargetEntity(final Entity entity) {
-//		return getTarget(entity, entity.getWorld().getEntities());
-		return getTarget(entity, entity.getNearbyEntities(50, 50, 50));
+	public static Entity getTargetEntity(final Player mago) {
+		return getTarget(mago, RANGO_MAX);
 	}
+	
+	private static Entity getTarget(final Player mago, double rango) {
+		final Location ojo = mago.getEyeLocation();
 
-	private static <T extends Entity> T getTarget(final Entity entity, final Iterable<T> entities) {
-		if (entity == null)
-			return null;
-		T target = null;
-		final double threshold = 1;
-		for (final T other : entities) {
-			final Vector n = other.getLocation().toVector().subtract(entity.getLocation().toVector());
-			if (entity.getLocation().getDirection().normalize().crossProduct(n).lengthSquared() < threshold
-					&& n.normalize().dot(entity.getLocation().getDirection().normalize()) >= 0) {
-				if (target == null || target.getLocation().distanceSquared(entity.getLocation()) > other.getLocation()
-						.distanceSquared(entity.getLocation()))
-					target = other;
-			}
+		RayTraceResult rtr = mago.getWorld().rayTrace(ojo, ojo.getDirection(), rango, FluidCollisionMode.NEVER, true, 0.2,
+				new Predicate<Entity>() {
+
+					@Override
+					public boolean test(Entity t) {
+						return t != mago;
+					}
+				});
+		if (rtr != null) {
+			return rtr.getHitEntity();
 		}
-		return target;
+		return null;
 	}
 
 }

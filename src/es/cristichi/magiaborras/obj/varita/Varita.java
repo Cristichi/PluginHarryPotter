@@ -37,9 +37,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -318,11 +317,11 @@ public class Varita extends ItemStack {
 			im.getPersistentDataContainer().set(keyConjuro, PersistentDataType.STRING, conjuro.getId());
 		setItemMeta(im);
 	}
-	
+
 	public String getJugador() {
 		return jugador;
 	}
-	
+
 	public void setJugador(String jugador) {
 		this.jugador = jugador;
 	}
@@ -511,22 +510,6 @@ public class Varita extends ItemStack {
 			}
 		}
 
-		
-
-		@EventHandler
-		private void onInteractEntity(PlayerInteractEntityEvent e) {
-			Player p = e.getPlayer();
-			Entity clicada = e.getRightClicked();
-			ItemStack item = p.getInventory().getItemInMainHand();
-			if (item != null) {
-				Varita varita = esItemStackUnaVarita(item);
-				if (varita != null)
-					if (varita.getConjuro() != null)
-						varita.getConjuro().Accionar(plugin, e.getPlayer(), clicada, null, varita,
-								TipoLanzamiento.DISTANCIA_ENTIDAD, false, true);
-			}
-		}
-
 		@EventHandler
 		private void onInteract(PlayerInteractEvent e) {
 			if ((e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
@@ -540,7 +523,7 @@ public class Varita extends ItemStack {
 							if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
 								Entity target = Targeter.getTargetEntity(mago);
 								if (target == null) {
-									if  (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)) {
+									if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)) {
 										Block targetLego = mago.getTargetBlockExact(30, FluidCollisionMode.NEVER);
 										if (targetLego != null) {
 											c.Accionar(plugin, mago, null, targetLego,
@@ -662,82 +645,80 @@ public class Varita extends ItemStack {
 				}
 			}
 		}
-		
-		
 
-	@EventHandler
-	private void onInventoryClick(InventoryClickEvent e) {
-		Inventory inventory = e.getClickedInventory();
+		@EventHandler
+		private void onInventoryClick(InventoryClickEvent e) {
+			Inventory inventory = e.getClickedInventory();
 
-		// Nada de inventarios fantasma
-		if (inventory == null) {
-			return;
-		}
-
-//		 Recetas no stealing TODO
-		if (inventory.getType().equals(InventoryType.WORKBENCH)) {
-			if (Varita.esItemStackUnaVarita(inventory.getItem(0)) != null) {
-				e.setCancelled(true);
+			// Nada de inventarios fantasma
+			if (inventory == null) {
 				return;
 			}
-		}
 
-		// When clicking to get the craft result
-		if (e.getSlotType().equals(SlotType.RESULT)
-				&& e.getClickedInventory().getType().equals(InventoryType.WORKBENCH)) {
-			CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
-			ItemStack is = inv.getResult();
-			if (is != null && is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
-					.has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
-				e.setCancelled(true);
-				return;
-			}
-			Varita varita = Varita.esItemStackUnaVarita(is);
-			if (varita != null) {
-				e.setCancelled(true);
-				HumanEntity p = e.getView().getPlayer();
-				PlayerInventory pi = p.getInventory();
-				varita.setJugador(p.getName());
-				varita.recagarDatos();
-
-				switch (e.getAction()) {
-				case MOVE_TO_OTHER_INVENTORY:
-					if (p.getItemOnCursor() != null) {
-						if (pi.firstEmpty() < 0)
-							p.getWorld().dropItem(p.getLocation(), varita);
-						else {
-							pi.addItem(varita);
-						}
-					}
-					break;
-
-				default:
-					if (p.getItemOnCursor() != null) {
-						if (pi.firstEmpty() < 0)
-							p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
-						else {
-							pi.addItem(p.getItemOnCursor());
-						}
-						p.setItemOnCursor(varita);
-					}
-					break;
+			// Recetas no stealing TODO
+			if (inventory.getType().equals(InventoryType.WORKBENCH)) {
+				if (Varita.esItemStackUnaVarita(inventory.getItem(0)) != null) {
+					e.setCancelled(true);
+					return;
 				}
+			}
 
-				ItemStack[] matriz = inv.getMatrix();
-				for (ItemStack itemStack : matriz) {
-					if (itemStack != null) {
-						itemStack.setAmount(itemStack.getAmount() - 1);
-						if (itemStack.getAmount() > 0) {
+			// When clicking to get the craft result
+			if (e.getSlotType().equals(SlotType.RESULT)
+					&& e.getClickedInventory().getType().equals(InventoryType.WORKBENCH)) {
+				CraftingInventory inv = (CraftingInventory) e.getClickedInventory();
+				ItemStack is = inv.getResult();
+				if (is != null && is.hasItemMeta() && is.getItemMeta().getPersistentDataContainer()
+						.has(new NamespacedKey(plugin, "blockcraft"), PersistentDataType.BYTE)) {
+					e.setCancelled(true);
+					return;
+				}
+				Varita varita = Varita.esItemStackUnaVarita(is);
+				if (varita != null) {
+					e.setCancelled(true);
+					HumanEntity p = e.getView().getPlayer();
+					PlayerInventory pi = p.getInventory();
+					varita.setJugador(p.getName());
+					varita.recagarDatos();
+
+					switch (e.getAction()) {
+					case MOVE_TO_OTHER_INVENTORY:
+						if (p.getItemOnCursor() != null) {
 							if (pi.firstEmpty() < 0)
-								p.getWorld().dropItem(p.getLocation(), itemStack);
-							else
-								pi.addItem(itemStack);
+								p.getWorld().dropItem(p.getLocation(), varita);
+							else {
+								pi.addItem(varita);
+							}
+						}
+						break;
+
+					default:
+						if (p.getItemOnCursor() != null) {
+							if (pi.firstEmpty() < 0)
+								p.getWorld().dropItem(p.getLocation(), p.getItemOnCursor());
+							else {
+								pi.addItem(p.getItemOnCursor());
+							}
+							p.setItemOnCursor(varita);
+						}
+						break;
+					}
+
+					ItemStack[] matriz = inv.getMatrix();
+					for (ItemStack itemStack : matriz) {
+						if (itemStack != null) {
+							itemStack.setAmount(itemStack.getAmount() - 1);
+							if (itemStack.getAmount() > 0) {
+								if (pi.firstEmpty() < 0)
+									p.getWorld().dropItem(p.getLocation(), itemStack);
+								else
+									pi.addItem(itemStack);
+							}
 						}
 					}
+					inv.clear();
 				}
-				inv.clear();
 			}
 		}
-	}
 	}
 }

@@ -27,7 +27,7 @@ public class PetrificusTotalus extends Conjuro {
 		super(plugin, "petrificustotalus", "Petrificus Totalus",
 				"Detiene una entidad donde está. Útil para traicionar amigos.", new MaterialChoice(Material.STONE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
-				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO, EfectoVisual.ONDA }, ChatColor.BOLD + "", Color.WHITE,
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.BOLD + "", Color.WHITE,
 				500, "");
 	}
 
