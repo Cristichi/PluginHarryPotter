@@ -46,6 +46,7 @@ import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -102,11 +103,11 @@ public class Varita extends ItemStack {
 		result.setItemMeta(im);
 
 		keyReceta = new NamespacedKey(plugin, "crafteoVarita");
-		receta = new ShapedRecipe(keyReceta, result).shape("FGS", "BPB", "ERE")
-				.setIngredient('F', Material.FERMENTED_SPIDER_EYE).setIngredient('G', Material.GHAST_TEAR)
-				.setIngredient('S', Material.SPIDER_EYE).setIngredient('B', Material.WRITABLE_BOOK)
-				.setIngredient('P', Material.STICK).setIngredient('E', Material.ENDER_EYE)
-				.setIngredient('R', Material.FIREWORK_ROCKET);
+		receta = new ShapedRecipe(keyReceta, result).shape(" T ", "DPD", "WWW").setIngredient('P', Material.STICK)
+				.setIngredient('T', Material.TORCH).setIngredient('D', Material.DIAMOND).setIngredient('W',
+						new RecipeChoice.MaterialChoice(Material.OAK_LOG, Material.ACACIA_LOG, Material.BIRCH_LOG,
+								Material.CHERRY_LOG, Material.DARK_OAK_LOG, Material.JUNGLE_LOG, Material.MANGROVE_LOG,
+								Material.SPRUCE_LOG));
 		plugin.getServer().addRecipe(receta);
 
 		for (Player p : Bukkit.getOnlinePlayers()) {
@@ -154,8 +155,9 @@ public class Varita extends ItemStack {
 				bw.write(configTxt);
 				bw.close();
 			} catch (NullPointerException e) {
-				plugin.getLogger().log(Level.INFO,
-						"It looks like Magic numbers could not be saved (Plugin did not start correctly?).");
+				plugin.getLogger().log(Level.SEVERE,
+						"It looks like Magic numbers could not be saved because something is null (Plugin did not start correctly?).",
+						e);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -655,8 +657,8 @@ public class Varita extends ItemStack {
 				return;
 			}
 
-			// Recetas no stealing TODO
-			if (inventory.getType().equals(InventoryType.WORKBENCH)) {
+			// Nada de robar la receta
+			if (inventory.getType().equals(InventoryType.WORKBENCH) && inventory.getClass().getName().equals("org.bukkit.craftbukkit.inventory.CraftInventoryCustom")) {
 				if (Varita.esItemStackUnaVarita(inventory.getItem(0)) != null) {
 					e.setCancelled(true);
 					return;

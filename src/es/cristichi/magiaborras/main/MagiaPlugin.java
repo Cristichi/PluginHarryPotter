@@ -130,7 +130,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 
 		MenuRedFlu.init(this);
 
-		recetas = new ArrayList<>(1);
+		recetas = new ArrayList<>(5);
 
 		{
 			ArrayList<Material> ingredientes = new ArrayList<>(1);
@@ -353,11 +353,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				Map<Character, ItemStack> mapa = Varita.getReceta().getIngredientMap();
 				ItemStack[] matrix = inv.getContents();
 				matrix[0] = new Varita();
-				// System.out.println("forma: " + forma);
-				// System.out.println("mapa keys: " + mapa.keySet());
-				// System.out.println("mapa vals: " + mapa.values());
 				for (int i = 0; i < 9; i++) {
-					// System.out.println(mapa.get(forma[i / 3].charAt(i % 3)));
 					matrix[i + 1] = mapa.get(forma[i / 3].charAt(i % 3));
 				}
 				inv.setContents(matrix);
