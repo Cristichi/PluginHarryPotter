@@ -95,7 +95,6 @@ public class VaritaListener implements Listener {
 						if (!c.equals(varita.getConjuro())) {
 							PlayerInventory pi = e.getPlayer().getInventory();
 							varita.cambiarConjuro(c);
-							otro.setAmount(otro.getAmount() - 1);
 							pi.setItemInOffHand(otro);
 							pi.setItemInMainHand(varita);
 						}
