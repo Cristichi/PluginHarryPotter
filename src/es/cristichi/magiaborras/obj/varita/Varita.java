@@ -302,6 +302,11 @@ public class Varita extends ItemStack {
 		this.jugador = jugador;
 	}
 
+	/**
+	 * 
+	 * @param mago Cada varita tiene una potencia distinta según el mago que la empuña.
+	 * @return Un valor entre 0 y 1, donde 0 es la peor potencia y 1 es una potencia perfecta.
+	 */
 	public float getPotencia(Player mago) {
 		float pot = 1 - Math.abs(getOrGenerateNumero(mago) - getNumeroMagico());
 		return Math.max(0, pot);
