@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
@@ -44,6 +45,9 @@ public class Incendio extends Conjuro {
 					Block lego = centro.getWorld().getBlockAt(centro.clone().add(i, j, k));
 					if (lego.getType().name().contains("AIR") && Math.random() < probPorBloque) {
 						lego.setType(Material.FIRE);
+					} else if (lego.getType().equals(Material.TNT)) {
+						lego.getWorld().spawnEntity(lego.getLocation().add(0.5, 0.5, 0.5), EntityType.TNT);
+						lego.setType(Material.AIR);
 					}
 				}
 			}
