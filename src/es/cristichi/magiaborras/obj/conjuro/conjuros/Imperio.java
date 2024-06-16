@@ -8,8 +8,9 @@ import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Boat;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.ZombieVillager;
@@ -30,7 +31,7 @@ public class Imperio extends Conjuro {
 
 	public Imperio(Plugin plugin) {
 		super(plugin, "imperio", "Imperio",
-				"La maldición imperius. Aquí, de momento solo sirve con Aldeanos. Les hace venderte todo más barato.",
+				"La maldición imperius. Hace que los aldeanos te vendan barato, que los animales te sigan, que los mobs te ignoren, o putea jugadores un poco.",
 				new MaterialChoice(Material.PLAYER_HEAD),
 				new TiposLanzamiento(TipoLanzamiento.CERCA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
@@ -47,7 +48,7 @@ public class Imperio extends Conjuro {
 			zAldeano.setConversionTime(5);
 			zAldeano.setConversionPlayer(mago);
 			return true;
-		} else if (victima instanceof Player || victima instanceof Boat) {
+		} else if (victima instanceof Player) {
 			Player magoVictima = (Player) victima;
 			if (magoVictima.getGameMode().equals(GameMode.SURVIVAL)) {
 				int duracion = (int) (600 * varita.getPotencia(mago));
@@ -62,7 +63,6 @@ public class Imperio extends Conjuro {
 				magoVictima.setWalkSpeed(-1);
 
 				Bukkit.getScheduler().runTaskLater(plugin, new Consumer<BukkitTask>() {
-
 					@Override
 					public void accept(BukkitTask t) {
 						magoVictima.setCanPickupItems(true);
@@ -73,6 +73,14 @@ public class Imperio extends Conjuro {
 				}, duracion);
 				return true;
 			}
+		} else if (victima instanceof Animals) {
+			Animals animalico = (Animals) victima;
+			animalico.setTarget(mago);
+			return true;
+		} else if (victima instanceof Monster) {
+			Monster monstro = (Monster) victima;
+			monstro.setTarget(null);
+			return true;
 		}
 		return false;
 	}
