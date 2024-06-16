@@ -229,7 +229,7 @@ public abstract class Conjuro {
 
 				// Efectos mágicos
 				final int totalTicksParticulas = cooldownTicks;
-				final int periodoParticulas = 1;
+				final int periodoParticulas = 3;
 				final int totalVecesParticulas = totalTicksParticulas / periodoParticulas;
 				final DustTransition dustTransitionParticulas = new DustTransition(getColor(), getColor(), 1F);
 
@@ -247,7 +247,7 @@ public abstract class Conjuro {
 									task.cancel();
 								} else {
 									mago.spawnParticle(Particle.DUST_COLOR_TRANSITION,
-											mago.getEyeLocation().clone().add(0, -0.2, 0), 1, 0, 0.5, 0,
+											mago.getEyeLocation().clone().add(0, 0.5, 0), 1, 0.1, 0.2, 0.1,
 											dustTransitionParticulas);
 								}
 								cont++;
