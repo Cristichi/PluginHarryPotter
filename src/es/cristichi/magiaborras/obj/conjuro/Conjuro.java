@@ -278,8 +278,7 @@ public abstract class Conjuro {
 						break;
 					}
 					case ONDA: {
-						final DustTransition dustTransitionOnda = new DustTransition(getColor(),
-								getColor().setAlpha(0).setGreen(255), 1F);
+						final DustTransition dustTransitionOnda = new DustTransition(getColor(), getColor(), 1F);
 						Location centro = mago.getLocation().clone().add(0, -0.1, 0);
 						mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, centro, 5555, radioOnda, 0.1, radioOnda,
 								dustTransitionOnda);
