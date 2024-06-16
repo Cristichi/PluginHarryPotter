@@ -28,7 +28,8 @@ public class Incendio extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
+		float potencia = varita.getPotencia(mago);
 		Location centro = null;
 		if (victima == null) {
 			centro = bloque.getLocation().add(0, 1, 0);

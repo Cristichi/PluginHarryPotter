@@ -30,9 +30,9 @@ public class Stupify extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		if (victima instanceof LivingEntity) {
-			((LivingEntity) victima).damage(5 * potencia, mago);
+			((LivingEntity) victima).damage(5 * varita.getPotencia(mago), mago);
 			return true;
 		}
 		return false;

@@ -11,14 +11,13 @@ import org.bukkit.util.RayTraceResult;
 public class Targeter {
 	private static double RANGO_MAX = 50000;
 
-	public static Entity getTargetEntity(final Player mago) {
+	public static RayTraceResult getTargetEntity(final Player mago) {
 		return getTarget(mago, RANGO_MAX);
 	}
-	
-	private static Entity getTarget(final Player mago, double rango) {
-		final Location ojo = mago.getEyeLocation();
 
-		RayTraceResult rtr = mago.getWorld().rayTrace(ojo, ojo.getDirection(), rango, FluidCollisionMode.NEVER, true, 0.2,
+	private static RayTraceResult getTarget(final Player mago, double rango) {
+		final Location ojo = mago.getEyeLocation();
+		return mago.getWorld().rayTrace(ojo, ojo.getDirection(), rango, FluidCollisionMode.NEVER, true, 0.2,
 				new Predicate<Entity>() {
 
 					@Override
@@ -26,10 +25,6 @@ public class Targeter {
 						return t != mago;
 					}
 				});
-		if (rtr != null) {
-			return rtr.getHitEntity();
-		}
-		return null;
 	}
 
 }

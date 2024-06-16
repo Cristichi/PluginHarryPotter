@@ -27,11 +27,11 @@ public class Depulso extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		Vector pos = victima.getLocation().toVector();
 		Vector target = mago.getLocation().toVector();
 		Vector velocity = pos.subtract(target);
-		victima.setVelocity(velocity.normalize().multiply(6 * potencia));
+		victima.setVelocity(velocity.normalize().multiply(6 * varita.getPotencia(mago)));
 		resetTiempoPalabras(mago);
 		return true;
 	}

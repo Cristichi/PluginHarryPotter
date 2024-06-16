@@ -28,7 +28,7 @@ public class Accio extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		victima.setGravity(false);
 		int idDist1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			@Override
@@ -59,7 +59,7 @@ public class Accio extends Conjuro {
 				Bukkit.getScheduler().cancelTask(idDist2);
 				victima.setGravity(true);
 			}
-		}, (long) (10 + 60 * potencia));
+		}, (long) (10 + 60 * varita.getPotencia(mago)));
 		resetTiempoPalabras(mago);
 		return true;
 	}

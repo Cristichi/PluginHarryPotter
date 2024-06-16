@@ -17,11 +17,9 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
@@ -39,10 +37,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -51,6 +51,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
 import org.joml.Math;
 
 import es.cristichi.magiaborras.main.MagiaPlugin;
@@ -229,7 +230,9 @@ public class Varita extends ItemStack {
 				// conjuro == null ? null : Conjuro.valueOf(conjuro), hack);
 			}
 		} catch (Exception e) {
-			Bukkit.getLogger().log(Level.WARNING, "La varita no es válida. Es posible que tras una actualización se haya jodido la varita o algo.", e);
+			Bukkit.getLogger().log(Level.WARNING,
+					"La varita no es válida. Es posible que tras una actualización se haya jodido la varita o algo.",
+					e);
 		}
 		return null;
 	}
@@ -511,6 +514,23 @@ public class Varita extends ItemStack {
 		}
 
 		@EventHandler
+		private void onInteractEntity(PlayerInteractEntityEvent e) {
+			if (e.getHand().equals(EquipmentSlot.HAND)) {
+				Player mago = e.getPlayer();
+				Varita varita = esItemStackUnaVarita(mago.getInventory().getItemInMainHand());
+				if (varita != null) {
+					if (varita.getConjuro() != null) {
+						Conjuro c = varita.getConjuro();
+						if (c.isTipoLanzamiento(TipoLanzamiento.CERCA_ENTIDAD)) {
+							c.Accionar(plugin, mago, e.getRightClicked(), null, varita, TipoLanzamiento.CERCA_ENTIDAD);
+						}
+					}
+				}
+			}
+
+		}
+
+		@EventHandler
 		private void onInteract(PlayerInteractEvent e) {
 			if ((e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 					&& e.getItem() != null) {
@@ -519,40 +539,22 @@ public class Varita extends ItemStack {
 					Player mago = e.getPlayer();
 					if (varita.getConjuro() != null) {
 						Conjuro c = varita.getConjuro();
-						if (c.puedeLanzar(plugin, mago, null, varita, 0, true)) {
-							if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)) {
-								Entity target = Targeter.getTargetEntity(mago);
-								if (target == null) {
-									if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)) {
-										Block targetLego = mago.getTargetBlockExact(30, FluidCollisionMode.NEVER);
-										if (targetLego != null) {
-											c.Accionar(plugin, mago, null, targetLego,
-													esItemStackUnaVarita(mago.getInventory().getItemInMainHand()),
-													TipoLanzamiento.DISTANCIA_BLOQUE, true, true);
-											c.ponerEnCD(mago);
-										}
-									}
-								} else {
-									c.Accionar(plugin, mago, target, null,
+						if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD)
+								|| c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)) {
+							RayTraceResult target = Targeter.getTargetEntity(mago);
+							if (target != null) {
+								if (target.getHitEntity() != null) {
+									c.Accionar(plugin, mago, target.getHitEntity(), null,
 											esItemStackUnaVarita(mago.getInventory().getItemInMainHand()),
-											TipoLanzamiento.DISTANCIA_ENTIDAD, true, true);
-									c.ponerEnCD(mago);
-								}
-							} else if (c.isTipoLanzamiento(TipoLanzamiento.DISTANCIA_BLOQUE)) {
-								Block targetLego = mago.getTargetBlockExact(30, FluidCollisionMode.NEVER);
-								if (targetLego != null) {
-									c.Accionar(plugin, mago, null, targetLego,
+											TipoLanzamiento.DISTANCIA_ENTIDAD);
+								} else if (target.getHitBlock() != null) {
+									c.Accionar(plugin, mago, null, target.getHitBlock(),
 											esItemStackUnaVarita(mago.getInventory().getItemInMainHand()),
-											TipoLanzamiento.DISTANCIA_BLOQUE, true, true);
-									c.ponerEnCD(mago);
-								}
-							} else {
-								if (c.isTipoLanzamiento(TipoLanzamiento.AREA_MAGO)) {
-									c.Accionar(plugin, mago, null, null, varita, TipoLanzamiento.AREA_MAGO, false,
-											true);
-									c.ponerEnCD(mago);
+											TipoLanzamiento.DISTANCIA_BLOQUE);
 								}
 							}
+						} else if (c.isTipoLanzamiento(TipoLanzamiento.AREA_MAGO)) {
+							c.Accionar(plugin, mago, null, null, varita, TipoLanzamiento.AREA_MAGO);
 						}
 					} else {
 						// Conjuro nulo
@@ -608,23 +610,22 @@ public class Varita extends ItemStack {
 						Player mago = Bukkit.getPlayer(jug);
 						e.setCancelled(true);
 						atacante.remove();
-						// float numeroMagicoPlayer = getOrGenerateNumero(p);
-						// c.Accionar(p, atacado, atacante.getMetadata("numeroMagicoVarita").get(0).asFloat(),
-						// numeroMagicoPlayer);
 						c.Accionar(plugin, mago, atacado, null,
 								esItemStackUnaVarita(mago.getInventory().getItemInMainHand()),
-								TipoLanzamiento.DISTANCIA_ENTIDAD, true, true);
+								TipoLanzamiento.DISTANCIA_ENTIDAD);
 						break;
 					}
 			} else if (atacante instanceof Player) {
 				Player mago = (Player) atacante;
 				Varita varita = esItemStackUnaVarita(mago.getInventory().getItemInMainHand());
-				if (varita != null && varita.getConjuro() != null)
-					for (Conjuro c : Conjuro.getConjuros())
-						if (c.isTipoLanzamiento(TipoLanzamiento.GOLPE) && varita.getConjuro().equals(c)) {
+				if (varita != null && varita.getConjuro() != null) {
+					Conjuro c = varita.getConjuro();
+					if (c.isTipoLanzamiento(TipoLanzamiento.GOLPE) && varita.getConjuro().equals(c)) {
+						if (c.Accionar(plugin, mago, atacado, null, varita, TipoLanzamiento.GOLPE)) {
 							e.setCancelled(true);
-							c.Accionar(plugin, mago, atacado, null, varita, TipoLanzamiento.GOLPE, false, true);
 						}
+					}
+				}
 			}
 		}
 
@@ -639,7 +640,7 @@ public class Varita extends ItemStack {
 						Player mago = Bukkit.getPlayer(jug);
 						c.Accionar(plugin, mago, null, e.getHitBlock(),
 								esItemStackUnaVarita(mago.getInventory().getItemInMainHand()),
-								TipoLanzamiento.DISTANCIA_BLOQUE, true, true);
+								TipoLanzamiento.DISTANCIA_BLOQUE);
 						break;
 					}
 				}
@@ -656,7 +657,8 @@ public class Varita extends ItemStack {
 			}
 
 			// Nada de robar la receta
-			if (inventory.getType().equals(InventoryType.WORKBENCH) && inventory.getClass().getName().equals("org.bukkit.craftbukkit.inventory.CraftInventoryCustom")) {
+			if (inventory.getType().equals(InventoryType.WORKBENCH)
+					&& inventory.getClass().getName().equals("org.bukkit.craftbukkit.inventory.CraftInventoryCustom")) {
 				if (Varita.esItemStackUnaVarita(inventory.getItem(0)) != null) {
 					e.setCancelled(true);
 					return;

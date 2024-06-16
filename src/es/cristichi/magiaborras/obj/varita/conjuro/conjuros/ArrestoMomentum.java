@@ -35,7 +35,8 @@ public class ArrestoMomentum extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
+		float potencia = varita.getPotencia(mago);
 		Location centro = mago.getLocation();
 		double radio = 6 * potencia;
 		Collection<Entity> entidades = centro.getWorld().getNearbyEntities(centro, radio, radio, radio, null);

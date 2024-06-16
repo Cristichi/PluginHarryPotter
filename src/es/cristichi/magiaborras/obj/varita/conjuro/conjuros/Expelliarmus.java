@@ -30,7 +30,7 @@ public class Expelliarmus extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		if (victima instanceof HumanEntity) {
 			HumanEntity victimaHumana = (HumanEntity) victima;
 			ItemStack mano = victimaHumana.getInventory().getItemInMainHand();

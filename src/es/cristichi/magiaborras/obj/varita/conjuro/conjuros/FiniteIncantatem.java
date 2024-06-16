@@ -35,7 +35,7 @@ public class FiniteIncantatem extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		Collection<Entity> armorStands = mago.getWorld().getNearbyEntities(mago.getLocation(), 50, 15, 50,
 				new Predicate<Entity>() {
 					@Override

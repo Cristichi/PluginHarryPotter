@@ -160,10 +160,6 @@ public abstract class Conjuro {
 		mensajesPalabrasMagicas.remove(p.getUniqueId());
 	}
 
-	public void ponerEnCD(Player p) {
-		cds.put(p.getUniqueId(), p.getTicksLived());
-	}
-
 	/**
 	 * 
 	 * @param  plugin
@@ -174,14 +170,13 @@ public abstract class Conjuro {
 	 * @param  avisoCD Normalmente "true". Si "false", no dirá a quien castea esto que tiene CD, útil si el CD es bajito.
 	 * @return
 	 */
-	public boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, double multCD,
-			boolean avisoCD) {
+	private boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, boolean avisoCD) {
 		boolean puede = true;
 		int ticks = mago.getTicksLived();
 		if (mago.hasPermission(plugin.USE)) {
 			if (cooldownTicks > 0) {
 				if (cds.containsKey(mago.getUniqueId())) {
-					int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks - (int) (cooldownTicks * multCD);
+					int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks;
 					if (ticksObj > ticks) {
 						puede = false;
 						if (avisoCD) {
@@ -205,21 +200,21 @@ public abstract class Conjuro {
 		return puede;
 	}
 
-	public void Accionar(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, boolean ignorarPuede, boolean usarPalabrasMagicas) {
+	public boolean Accionar(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
+			TipoLanzamiento tipoLanzamiento) {
 		if (varita == null) {
-			return;
+			return false;
 		}
-		if (ignorarPuede || puedeLanzar(plugin, mago, victima, varita, 0, !ignorarPuede)) {
+		if (puedeLanzar(plugin, mago, victima, varita, true)) {
 			int ticks = mago.getTicksLived();
 			mensajes.put(mago.getUniqueId(), ticks);
 
 			// Lanzamos el conjuro
-			if (Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento, varita.getPotencia(mago))) {
+			if (Accion(plugin, mago, victima, bloque, varita, tipoLanzamiento)) {
 				// Si el conjuro se lanzó con éxito, hacemos lo siguiente.
 
 				// Palabras mágicas
-				if (usarPalabrasMagicas && palabras != null) {
+				if (palabras != null) {
 					if (!mensajesPalabrasMagicas.containsKey(mago.getUniqueId())
 							|| mensajesPalabrasMagicas.get(mago.getUniqueId()) + cdMensajePalabrasMagicas <= ticks) {
 						String nombre = mago.getCustomName() == null ? mago.getName() : mago.getCustomName();
@@ -231,7 +226,7 @@ public abstract class Conjuro {
 					}
 					mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
 				}
-				
+
 				// Efectos mágicos
 				final int totalTicksParticulas = cooldownTicks;
 				final int periodoParticulas = 1;
@@ -301,9 +296,10 @@ public abstract class Conjuro {
 
 				// Ponemos en CD marcando el tiempo que el mago terminó este conjuro.
 				cds.put(mago.getUniqueId(), mago.getTicksLived());
-			} else {
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -319,7 +315,7 @@ public abstract class Conjuro {
 	 * @return                 "true" si se lanzó y actuó para que se ponga en CD, "false" si no.
 	 */
 	public abstract boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia);
+			TipoLanzamiento tipoLanzamiento);
 
 	@Override
 	public String toString() {

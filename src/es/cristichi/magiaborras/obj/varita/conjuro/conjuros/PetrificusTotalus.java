@@ -33,9 +33,9 @@ public class PetrificusTotalus extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		if (victima instanceof LivingEntity) {
-			int ticks = (int) (60 * potencia) + 10;
+			int ticks = (int) (60 * varita.getPotencia(mago)) + 10;
 			((LivingEntity) victima).addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, ticks, 999));
 			int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 				@Override

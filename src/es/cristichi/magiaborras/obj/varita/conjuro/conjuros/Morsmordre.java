@@ -38,7 +38,7 @@ public class Morsmordre extends Conjuro {
 
 	@Override
 	public boolean Accion(MagiaPlugin plugin, Player mago, Entity victima, Block bloque, Varita varita,
-			TipoLanzamiento tipoLanzamiento, float potencia) {
+			TipoLanzamiento tipoLanzamiento) {
 		Location loc = mago.getLocation().add(0, 50, 0);
 		World mundo = loc.getWorld();
 		ArmorStand vfx = (ArmorStand) mundo.spawnEntity(loc, EntityType.ARMOR_STAND);
