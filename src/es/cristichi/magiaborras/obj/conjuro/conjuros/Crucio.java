@@ -51,11 +51,10 @@ public class Crucio extends Conjuro implements Listener {
 	public Crucio(Plugin plugin) {
 		super(plugin, "crucio", "Crucio",
 				"La maldición cruciatus. Hace que cualquier cosa viva se quede quieta sufriendo un rato.",
-				new MaterialChoice(Material.PLAYER_HEAD),
+				new MaterialChoice(Material.RIB_ARMOR_TRIM_SMITHING_TEMPLATE),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
-				// ChatColor.DARK_RED + "" + ChatColor.BOLD, Color.fromRGB(255, 50, 0), 18000, "");
-				ChatColor.DARK_RED + "" + ChatColor.BOLD, Color.fromRGB(255, 50, 0), 1, "");
+				ChatColor.DARK_RED + "" + ChatColor.BOLD + ChatColor.STRIKETHROUGH, Color.fromRGB(255, 50, 0), 1, "");
 
 		META_VALUE = new FixedMetadataValue(plugin, true);
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
