@@ -32,6 +32,7 @@ import es.cristichi.magiaborras.obj.conjuro.MenuConjuros;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Accio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.ArrestoMomentum;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.AvadaKedavra;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.Crucio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Depulso;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Expelliarmus;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.FiniteIncantatem;
@@ -92,6 +93,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			new Accio(this);
 			new ArrestoMomentum(this);
 			new AvadaKedavra(this);
+			new Crucio(this);
 			new Depulso(this);
 			new Expelliarmus(this);
 			new FiniteIncantatem(this);
