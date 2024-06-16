@@ -25,7 +25,8 @@ public class Expelliarmus extends Conjuro {
 	public Expelliarmus(Plugin plugin) {
 		super(plugin, "expelliarmus", "Expelliarmus", "Obliga a otro jugador a soltar lo que tenga en la mano.",
 				new MaterialChoice(Material.RED_DYE), new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
-				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.RED + "", Color.RED, 200, "");
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.RED + "", Color.RED, 200,
+				"");
 	}
 
 	@Override
@@ -35,18 +36,20 @@ public class Expelliarmus extends Conjuro {
 			HumanEntity victimaHumana = (HumanEntity) victima;
 			ItemStack mano = victimaHumana.getInventory().getItemInMainHand();
 			Item dropeado = victimaHumana.getWorld().dropItemNaturally(victimaHumana.getEyeLocation(), mano);
-			dropeado.setGlowing(true);
-			victimaHumana.getInventory().setItemInMainHand(null);
-			resetTiempoPalabras(mago);
+			if (dropeado != null) {
+				dropeado.setGlowing(true);
+				victimaHumana.getInventory().setItemInMainHand(null);
+			}
 			return true;
 		} else if (victima instanceof LivingEntity) {
 			LivingEntity vivito = (LivingEntity) victima;
 			ItemStack mano = vivito.getEquipment().getItemInMainHand();
 			Item dropeado = vivito.getWorld().dropItemNaturally(vivito.getEyeLocation(), mano);
-			dropeado.setGlowing(true);
-			vivito.getEquipment().setItemInMainHand(null);
-			resetTiempoPalabras(mago);
-			return true;
+			if (dropeado != null) {
+				dropeado.setGlowing(true);
+				vivito.getEquipment().setItemInMainHand(null);
+				return true;
+			}
 		}
 		return false;
 	}
