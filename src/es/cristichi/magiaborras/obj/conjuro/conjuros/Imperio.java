@@ -32,7 +32,7 @@ public class Imperio extends Conjuro {
 	public Imperio(Plugin plugin) {
 		super(plugin, "imperio", "Imperio",
 				"La maldición imperius. Hace que los aldeanos te vendan barato, que los animales te sigan, que los mobs te ignoren, o putea jugadores un poco.",
-				new MaterialChoice(Material.PLAYER_HEAD),
+				new MaterialChoice(Material.COMMAND_BLOCK_MINECART),
 				new TiposLanzamiento(TipoLanzamiento.CERCA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
 				ChatColor.GRAY + "" + ChatColor.BOLD, Color.fromRGB(200, 200, 200), 18000, "");
