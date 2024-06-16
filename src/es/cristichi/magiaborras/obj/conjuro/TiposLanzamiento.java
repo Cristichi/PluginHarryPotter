@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.conjuro;
+package es.cristichi.magiaborras.obj.conjuro;
 
 import java.util.ArrayList;
 

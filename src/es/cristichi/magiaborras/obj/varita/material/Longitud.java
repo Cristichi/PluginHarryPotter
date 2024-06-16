@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.prop;
+package es.cristichi.magiaborras.obj.varita.material;
 
 public enum Longitud {
 	MUY_CORTA, CORTA, MEDIANA, LARGA, MUY_LARGA;

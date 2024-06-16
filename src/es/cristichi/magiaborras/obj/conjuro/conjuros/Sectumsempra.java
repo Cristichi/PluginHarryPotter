@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.conjuro.conjuros;
+package es.cristichi.magiaborras.obj.conjuro.conjuros;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -14,11 +14,11 @@ import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.plugin.Plugin;
 
 import es.cristichi.magiaborras.main.MagiaPlugin;
+import es.cristichi.magiaborras.obj.conjuro.Conjuro;
+import es.cristichi.magiaborras.obj.conjuro.EfectoVisual;
+import es.cristichi.magiaborras.obj.conjuro.TipoLanzamiento;
+import es.cristichi.magiaborras.obj.conjuro.TiposLanzamiento;
 import es.cristichi.magiaborras.obj.varita.Varita;
-import es.cristichi.magiaborras.obj.varita.conjuro.Conjuro;
-import es.cristichi.magiaborras.obj.varita.conjuro.EfectoVisual;
-import es.cristichi.magiaborras.obj.varita.conjuro.TipoLanzamiento;
-import es.cristichi.magiaborras.obj.varita.conjuro.TiposLanzamiento;
 
 public class Sectumsempra extends Conjuro {
 

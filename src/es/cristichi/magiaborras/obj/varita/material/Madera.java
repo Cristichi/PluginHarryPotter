@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.prop;
+package es.cristichi.magiaborras.obj.varita.material;
 
 public enum Madera {
 	ABEDUL, ABETO, ACACIA, ACEBO, ALAMO("Álamo"), ALAMO_TEMBLON("Álamo Temblón"), ALERCE, ALISO, ARCE, ARCE_AZUCARADO,

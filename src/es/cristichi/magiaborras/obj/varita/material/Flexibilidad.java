@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.prop;
+package es.cristichi.magiaborras.obj.varita.material;
 public enum Flexibilidad {
 		MUY_RIGIDA("Muy Rígida"), RIGIDA("Rígida"), ALGO_RIGIDA("Algo Rígida"), FLEXIBILIDAD_MEDIA, MUY_FLEXIBLE,
 		INCREIBLEMENTE_FLEXIBLE("Increíblemente Flexible"), EXTREMADAMENTE_FLEXIBLE;

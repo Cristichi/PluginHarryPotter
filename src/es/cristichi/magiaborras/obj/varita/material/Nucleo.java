@@ -1,4 +1,4 @@
-package es.cristichi.magiaborras.obj.varita.prop;
+package es.cristichi.magiaborras.obj.varita.material;
 
 public enum Nucleo {
 		ASTAS_DE_LEBRILOPE("Astas De Lebrílope"), BIGOTES_DE_KNEAZLE, BIGOTES_DE_TROL, CORAL, CUERNO_DE_BASILISCO,
