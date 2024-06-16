@@ -23,7 +23,9 @@ public class AvadaKedavra extends Conjuro {
 
 	public AvadaKedavra(Plugin plugin) {
 		super(plugin, "avada_kedavra", "Avada Kedavra", "La maldición asesina.",
-				new MaterialChoice(Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
+				new MaterialChoice(Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE, Material.DRAGON_HEAD, Material.CREEPER_HEAD,
+						Material.PLAYER_HEAD, Material.ZOMBIE_HEAD, Material.SKELETON_SKULL,
+						Material.WITHER_SKELETON_SKULL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
 				ChatColor.GREEN + "" + ChatColor.BOLD + ChatColor.STRIKETHROUGH, Color.GREEN, 18000, "");
