@@ -35,7 +35,7 @@ public class Imperio extends Conjuro {
 				new MaterialChoice(Material.PLAYER_HEAD),
 				new TiposLanzamiento(TipoLanzamiento.CERCA_ENTIDAD, TipoLanzamiento.GOLPE),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO },
-				ChatColor.DARK_RED + "" + ChatColor.BOLD, Color.fromRGB(255, 50, 0), 18000, "");
+				ChatColor.GRAY + "" + ChatColor.BOLD, Color.fromRGB(200, 200, 200), 18000, "");
 	}
 
 	@Override
