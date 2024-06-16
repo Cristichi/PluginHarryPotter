@@ -118,8 +118,9 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					String lineaOwner = lector.nextLine();
 					String lineaLoc = lector.nextLine();
 					StringTokenizer tokLoc = new StringTokenizer(lineaLoc, " ");
-					Location loc = new Location(Bukkit.getWorld(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()),
-							Double.parseDouble(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()));
+					Location loc = new Location(Bukkit.getWorld(tokLoc.nextToken()),
+							Double.parseDouble(tokLoc.nextToken()), Double.parseDouble(tokLoc.nextToken()),
+							Double.parseDouble(tokLoc.nextToken()));
 					RedFlu.RED_FLU.put(lineaNombre, new ChimeneaFlu(loc, lineaNombre, lineaOwner));
 				}
 				lector.close();
@@ -226,7 +227,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					myWriter.write("\n");
 					myWriter.write(chi.getOwner());
 					myWriter.write("\n");
-					myWriter.write(chi.getLoc().getWorld().getName()+" "+chi.getLoc().getX()+" "+chi.getLoc().getY()+" "+chi.getLoc().getZ()+" ");
+					myWriter.write(chi.getLoc().getWorld().getName() + " " + chi.getLoc().getX() + " "
+							+ chi.getLoc().getY() + " " + chi.getLoc().getZ() + " ");
 					myWriter.write("\n");
 				}
 				myWriter.close();
@@ -318,6 +320,19 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 						ItemStack is = new ItemStack(mats.get(0));
 						ItemMeta im = is.getItemMeta();
 						im.setDisplayName(textColor + c.getChatColor() + c.getNombre());
+
+						StringTokenizer st = new StringTokenizer(c.getDesc(), " ");
+						ArrayList<String> lore = new ArrayList<>(st.countTokens());
+						String str = "";
+						while (st.hasMoreTokens()) {
+							str += st.nextToken() + " ";
+							if (str.length() >= 30) {
+								lore.add(str.trim());
+								str = "";
+							}
+						}
+						lore.add(str.trim());
+						im.setLore(lore);
 						is.setItemMeta(im);
 						menuItems.add(is);
 					}
