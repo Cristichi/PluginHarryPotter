@@ -28,7 +28,6 @@ import org.bukkit.util.Vector;
 import es.cristichi.magiaborras.main.MagiaPlugin;
 import es.cristichi.magiaborras.obj.varita.Varita;
 
-//TODO: hacer el aparicio este para aparecerse en otro sitio, en plan sethome
 public abstract class Conjuro {
 
 	private static HashMap<String, Conjuro> CONJUROS = new HashMap<>(20);
@@ -246,7 +245,7 @@ public abstract class Conjuro {
 								if (cont > totalVecesParticulas) {
 									task.cancel();
 								} else {
-									mago.spawnParticle(Particle.DUST_COLOR_TRANSITION,
+									mago.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION,
 											mago.getEyeLocation().clone().add(0, 0.5, 0), 1, 0.1, 0.2, 0.1,
 											dustTransitionParticulas);
 								}
@@ -270,7 +269,7 @@ public abstract class Conjuro {
 									.multiply(0.5);
 
 							while (actual.distance(objetivo) > 1) {
-								mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, actual, 1, 0, 0, 0,
+								mago.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, actual, 1, 0, 0, 0,
 										dustTransitionRayito);
 								actual.add(paso);
 							}
@@ -280,7 +279,7 @@ public abstract class Conjuro {
 					case ONDA: {
 						final DustTransition dustTransitionOnda = new DustTransition(getColor(), getColor(), 1F);
 						Location centro = mago.getLocation().clone().add(0, -0.1, 0);
-						mago.spawnParticle(Particle.DUST_COLOR_TRANSITION, centro, 5555, radioOnda, 0.1, radioOnda,
+						mago.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION, centro, 5555, radioOnda, 0.1, radioOnda,
 								dustTransitionOnda);
 						break;
 					}

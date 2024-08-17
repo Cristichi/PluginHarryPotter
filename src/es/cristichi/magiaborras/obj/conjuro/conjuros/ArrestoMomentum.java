@@ -29,7 +29,7 @@ public class ArrestoMomentum extends Conjuro {
 				"Te detiene a ti y a todas las entidades de tu alrededor. ¡Útil para saltar por precipicios!",
 				new MaterialChoice(Material.SPONGE, Material.WET_SPONGE),
 				new TiposLanzamiento(TipoLanzamiento.AREA_MAGO),
-				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.ONDA }, ChatColor.AQUA + "", Color.AQUA, 120,
+				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.ONDA }, ChatColor.AQUA + "", Color.AQUA, 10,
 				"");
 	}
 
