@@ -146,7 +146,7 @@ public class VaritaListener implements Listener {
 			} else if (e.getRecipe().getResult() != null) {
 				Varita varita = Varita.esItemStackUnaVarita(e.getRecipe().getResult());
 				if (varita != null) {
-					if (!e.getView().getPlayer().hasPermission(Varita.plugin.CREATE)) {
+					if (!e.getView().getPlayer().hasPermission(Varita.plugin.PERM_CRAFT)) {
 						ItemStack block = new ItemStack(Material.BARRIER);
 						ItemMeta im = block.getItemMeta();
 						im.setDisplayName("No puedes fabricar varitas");

@@ -1,7 +1,7 @@
 name: MagiaBorras
 main: es.cristichi.magiaborras.main.MagiaPlugin
 depend: []
-version: 1.7.2
+version: 1.8.2
 api-version: 1.13
 commands:
   magia:
@@ -12,11 +12,11 @@ permissions:
   magiaborras.*:
     children:
       magiaborras.use: true
-      magiaborras.create: true
+      magiaborras.craft: true
       magiaborras.admin: true
   magiaborras.use:
-    default: op
-  magiaborras.create:
-    default: op
+    default: true
+  magiaborras.craft:
+    default: true
   magiaborras.admin:
     default: op

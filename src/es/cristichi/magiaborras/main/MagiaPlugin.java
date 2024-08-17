@@ -31,7 +31,10 @@ import es.cristichi.magiaborras.obj.conjuro.Conjuro;
 import es.cristichi.magiaborras.obj.conjuro.MenuConjuros;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Accio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.ArrestoMomentum;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.Ascendio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.AvadaKedavra;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.Bombarda;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.BombardaMaxima;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Crucio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Depulso;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Expelliarmus;
@@ -41,7 +44,7 @@ import es.cristichi.magiaborras.obj.conjuro.conjuros.Incendio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Morsmordre;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.PetrificusTotalus;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Sectumsempra;
-import es.cristichi.magiaborras.obj.conjuro.conjuros.Stupify;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.Diffindo;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.WingardiumLeviosa;
 import es.cristichi.magiaborras.obj.flu.ChimeneaFlu;
 import es.cristichi.magiaborras.obj.flu.MenuRedFlu;
@@ -52,9 +55,9 @@ import es.cristichi.magiaborras.obj.pocion.RecetaPocion;
 import es.cristichi.magiaborras.obj.varita.Varita;
 
 public class MagiaPlugin extends JavaPlugin implements Listener {
-	public Permission USE = new Permission("magiaborras.use");
-	public Permission CREATE = new Permission("magiaborras.create");
-	public Permission ADMIN = new Permission("magiaborras.admin");
+	public final Permission PERM_MAGO = new Permission("magiaborras.use");
+	public final Permission PERM_CRAFT = new Permission("magiaborras.craft");
+	public final Permission PERM_ADMIN = new Permission("magiaborras.admin");
 
 	private PluginDescriptionFile desc = getDescription();
 
@@ -102,8 +105,11 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			new Morsmordre(this);
 			new PetrificusTotalus(this);
 			new Sectumsempra(this);
-			new Stupify(this);
+			new Diffindo(this);
 			new WingardiumLeviosa(this);
+			new Bombarda(this);
+			new BombardaMaxima(this);
+			new Ascendio(this);
 		}
 
 		flooNetwork = new RedFlu();
@@ -248,7 +254,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		}
 		boolean bueno = true;
 		switch (args[0]) {
-		case "test":
+		case "testpotion":
 			if (sender instanceof Player) {
 				if (args.length == 1) {
 					((Player) sender).getInventory().addItem(Pocion.get("solitario"));
@@ -271,7 +277,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			}
 			break;
 		case "give":
-			if (sender instanceof Player) {
+			if (sender instanceof Player && sender.hasPermission(PERM_ADMIN)) {
 				Player p = (Player) sender;
 				// p.getInventory()
 				// .addItem(new Varita(null, Varita.getOrGenerateNumero(p), Nucleo.FIBRA_DE_CORAZON_DE_DRAGON,
@@ -284,17 +290,13 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			if (sender instanceof Player) {
 				sender.sendMessage(header + "Para lanzar un " + accentColor + "Conjuro" + textColor
 						+ " primero debes preparar la varita con ese " + accentColor + "Conjuro" + textColor + ". "
-						+ "Para ello, coloca tu varita en la mano principal y el ingrediente del " + accentColor
-						+ "Conjuro" + textColor + " en la otra, " + "y después pulsa " + accentColor + "F" + textColor
-						+ " para intercambiarlos. Una vez cargado el " + accentColor + "Conjuro" + textColor
-						+ " en tu varita, " + "puedes lanzarlo tantas veces como quieras o volver a cambiarlo de "
-						+ accentColor + "Conjuro" + textColor + ".");
-				sender.sendMessage("\n" + header + "Para ver qué ingrediente necesitas para preparar un " + accentColor
-						+ "Conjuro" + textColor + ", recuerda usar /" + accentColor + label + " conjuros" + textColor);
-				sender.sendMessage("\n" + header + "Una vez preparado tu " + accentColor + "Conjuro" + textColor + ", "
-						+ "para lanzarlo sólo debes hacer click derecho con tu varita en dirección a un mob o jugador. "
-						+ "Recuerda que algunos " + accentColor + "Conjuros" + textColor
-						+ " podrían lanzarse de una manera diferente.");
+						+ "Para ello, simplemente usa / " + accentColor + label + "conjuros" + textColor
+						+ " y selecciona el " + accentColor + "Conjuro" + textColor + " deseado. Una vez cargado el "
+						+ accentColor + "Conjuro" + textColor + " en tu varita, "
+						+ "puedes lanzarlo tantas veces como quieras o volver a cambiarlo de " + accentColor + "Conjuro"
+						+ textColor + ".");
+				sender.sendMessage("\n" + header + "Para lanzar el " + accentColor + "Conjuro" + textColor
+						+ " cargado, simplemente debes hacer click derecho con tu varita en dirección al aire o apuntando a un objetivo.");
 			} else {
 				sender.sendMessage(header + "Lo siento, pero tú no puedes usar una varita");
 			}
@@ -472,6 +474,100 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			break;
 		}
 		return bueno;
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		List<String> list = new ArrayList<>();
+		switch (args.length) {
+		case 0:
+			list.add("help");
+			list.add("uso");
+			list.add("hechizos");
+			list.add("sinergia");
+			if (sender.hasPermission(PERM_CRAFT)) {
+				list.add("receta");
+			}
+			if (sender.hasPermission(PERM_ADMIN)) {
+				list.add("recargarinfo");
+				list.add("cheat");
+				list.add("give");
+			}
+			break;
+		case 1:
+			args[0] = args[0].toLowerCase();
+			switch (args[0]) {
+			case "help":
+			case "uso":
+			case "cheat":
+			case "receta":
+				break;
+
+			default:
+				if ("help".contains(args[0]))
+					list.add("help");
+				if ("uso".contains(args[0]))
+					list.add("uso");
+				if ("hechizos".contains(args[0]))
+					list.add("hechizos");
+				if ("sinergia".contains(args[0]))
+					list.add("sinergia");
+				
+				if (sender.hasPermission(PERM_CRAFT)) {
+					if ("receta".contains(args[0]))
+						list.add("receta");
+				}
+				
+				
+				if (sender.hasPermission(PERM_ADMIN)) {
+					if ("recargarinfo".contains(args[0]))
+						list.add("recargarinfo");
+					if ("cheat".contains(args[0]))
+						list.add("cheat");
+					if ("give".contains(args[0]))
+						list.add("give");
+				}
+				break;
+			}
+			break;
+
+		case 2:
+			args[0] = args[0].toLowerCase();
+			switch (args[0]) {
+			case "setlimit":
+				break;
+			case "setvipmode":
+			case "setreplant":
+			case "setinvinciblereplant":
+			case "setaxeneeded":
+			case "setdamageaxe":
+			case "setbreakaxe":
+			case "setnethertrees":
+			case "setstartactivated":
+			case "setjoinmsg":
+			case "setignoreleaves":
+			case "setsneaking":
+			case "setcrouch":
+				list.add("true");
+				list.add("false");
+				break;
+			case "setsneakingprevention":
+			case "setcrouchprevention":
+				list.add("true");
+				list.add("inverted");
+				list.add("false");
+			case "setlanguage":
+			case "setlang":
+				// list.add("English");
+
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+		return list;
 	}
 
 	class Ayuda {

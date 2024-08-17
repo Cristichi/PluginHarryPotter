@@ -36,11 +36,11 @@ public class Sectumsempra extends Conjuro {
 		if (victima instanceof LivingEntity) {
 			LivingEntity victimaViva = (LivingEntity) victima;
 			float potencia = varita.getPotencia(mago);
-			int delay = 40;
-			int ticks = 60;
+			int delay = 5;
+			int ticks = (int) (5300 * potencia + 100);
 			int wait = 20;
 			int repes = ticks / wait;
-			double damage = victimaViva.getHealth() * potencia / repes;
+			double damage = Math.max(1, victimaViva.getHealth() * potencia / repes);
 			victima.getLocation().getWorld().spawnParticle(Particle.CRIT, ((LivingEntity) victima).getEyeLocation(), 15,
 					0.1, 0.1, 0.1);
 
@@ -51,7 +51,7 @@ public class Sectumsempra extends Conjuro {
 							((LivingEntity) victima).getEyeLocation(), 15, 0.1, 0.1, 0.1);
 					victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1,
 							0.01f);
-					victimaViva.damage(damage);
+					victimaViva.damage(damage, mago);
 					if (victimaViva.getHealth() < 0) {
 						victimaViva.setHealth(0);
 					}

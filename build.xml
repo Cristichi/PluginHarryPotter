@@ -11,6 +11,10 @@
             <fileset dir="bin"></fileset>
             <fileset file="plugin.yml"></fileset>
         </jar>
+        <jar destfile="C:/Todo/MC Servers/Anás/plugins/${ant.project.name}.jar">
+            <fileset dir="bin"></fileset>
+            <fileset file="plugin.yml"></fileset>
+        </jar>
         <jar destfile="C:/Todo/MC Servers/v2.20.6/plugins/${ant.project.name}-1.20.6.jar">
             <fileset dir="bin"></fileset>
             <fileset file="plugin.yml"></fileset>

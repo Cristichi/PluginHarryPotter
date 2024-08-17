@@ -6,7 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.20.6-R0.1-SNAPSHOT-shaded.jar" sourcepath="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.20.6-R0.1-SNAPSHOT-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.20.6-R0.1-SNAPSHOT-javadoc.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.21-R0.1-SNAPSHOT-shaded.jar" sourcepath="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.20.6-R0.1-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.21-R0.1-SNAPSHOT-javadoc.jar"/>
+	<classpathentry kind="lib" path="C:/Todo/MC Plugins/Spigot Build Downloader 1.20.6+/Spigot/Spigot-API/target/spigot-api-1.21-R0.1-SNAPSHOT-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

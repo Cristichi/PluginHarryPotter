@@ -173,7 +173,7 @@ public abstract class Conjuro {
 	private boolean puedeLanzar(MagiaPlugin plugin, Player mago, Entity victima, Varita varita, boolean avisoCD) {
 		boolean puede = true;
 		int ticks = mago.getTicksLived();
-		if (mago.hasPermission(plugin.USE)) {
+		if (mago.hasPermission(plugin.PERM_MAGO)) {
 			if (cooldownTicks > 0) {
 				if (cds.containsKey(mago.getUniqueId())) {
 					int ticksObj = cds.get(mago.getUniqueId()) + cooldownTicks;

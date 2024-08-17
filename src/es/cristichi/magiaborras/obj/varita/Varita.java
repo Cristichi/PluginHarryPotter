@@ -53,7 +53,7 @@ public class Varita extends ItemStack {
 	static NamespacedKey keyHack;
 
 	public static void Init(MagiaPlugin plugin) {
-		if (plugin == null || plugin.USE == null) {
+		if (plugin == null || plugin.PERM_MAGO == null) {
 			throw new NullPointerException("Debes poner un plugin para iniciar la clase Varita.");
 		}
 

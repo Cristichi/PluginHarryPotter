@@ -17,10 +17,10 @@ import es.cristichi.magiaborras.obj.conjuro.TipoLanzamiento;
 import es.cristichi.magiaborras.obj.conjuro.TiposLanzamiento;
 import es.cristichi.magiaborras.obj.varita.Varita;
 
-public class Stupify extends Conjuro {
+public class Diffindo extends Conjuro {
 
-	public Stupify(Plugin plugin) {
-		super(plugin, "stupify", "Stupify", "El conjuro de daño básico. Hace pupa y ya.",
+	public Diffindo(Plugin plugin) {
+		super(plugin, "diffindo", "Diffindo", "El conjuro de daño básico. Hace pupa y ya.",
 				new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
 						Material.COBBLESTONE_WALL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
@@ -39,3 +39,4 @@ public class Stupify extends Conjuro {
 	}
 
 }
+
