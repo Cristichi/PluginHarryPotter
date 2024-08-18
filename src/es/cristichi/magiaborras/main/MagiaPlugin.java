@@ -468,19 +468,28 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 		List<String> list = new ArrayList<>();
 		switch (args.length) {
-		case 0:
-			list.add("help");
-			list.add("uso");
-			list.add("hechizos");
-			list.add("pociones");
-			list.add("sinergia");
+		case 1:
+			if ("help".startsWith(args[0]))
+				list.add("help");
+			if ("uso".startsWith(args[0]))
+				list.add("uso");
+			if ("hechizos".startsWith(args[0]))
+				list.add("hechizos");
+			if ("pociones".startsWith(args[0]))
+				list.add("pociones");
+			if ("sinergia".startsWith(args[0]))
+				list.add("sinergia");
 			if (sender.hasPermission(PERM_CRAFT)) {
-				list.add("receta");
+				if ("receta".startsWith(args[0]))
+					list.add("receta");
 			}
 			if (sender.hasPermission(PERM_ADMIN)) {
-				list.add("recargarinfo");
-				list.add("cheat");
-				list.add("give");
+				if ("recargarinfo".startsWith(args[0]))
+					list.add("recargarinfo");
+				if ("cheat".startsWith(args[0]))
+					list.add("cheat");
+				if ("give".startsWith(args[0]))
+					list.add("give");
 			}
 			break;
 		default:

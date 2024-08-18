@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustTransition;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -136,10 +137,13 @@ public class Caldero implements Listener {
 					Bukkit.getScheduler().cancelTask(idTaskParticulas);
 				}
 				Block lego = item.getWorld().getBlockAt(item.getLocation());
-				if (isCaldero(lego)) {
+				if (isCaldero(lego)) {					
 					HashMap<Material, Integer> mats = getMetaIngredientes(lego);
+					RecetaPocion recetaAnterior = getReceta(mats);
+					
 					ItemStack itemStack = item.getItemStack();
 					Material nuevo = itemStack.getType();
+					
 					if (mats.containsKey(nuevo)) {
 						mats.put(nuevo, mats.get(nuevo) + itemStack.getAmount());
 					} else {
@@ -157,8 +161,11 @@ public class Caldero implements Listener {
 
 						final World world = lego.getWorld();
 						final Location loc = lego.getLocation().add(0.5, 1, 0.5);
-						world.spawnParticle(Particle.EXPLOSION, loc.getX(), loc.getY(), loc.getZ(), 1, 0.1, 0.1, 0.1,
-								null);
+						if (recetaAnterior == null) {
+							world.spawnParticle(Particle.EXPLOSION, loc.getX(), loc.getY(), loc.getZ(), 1, 0.1, 0.1,
+									0.1, null);
+							world.playSound(loc, Sound.ITEM_GOAT_HORN_SOUND_7, SoundCategory.BLOCKS, 1f, 1f);
+						}
 						idTaskParticulas = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 							@Override
 							public void run() {
@@ -326,8 +333,7 @@ public class Caldero implements Listener {
 						mats.put(nuevo, 1);
 					}
 				} catch (Exception e) {
-					new RuntimeException("Error al intentar añadir el Material \"" + m + "\".", e)
-							.printStackTrace();
+					new RuntimeException("Error al intentar añadir el Material \"" + m + "\".", e).printStackTrace();
 				}
 			}
 		}
