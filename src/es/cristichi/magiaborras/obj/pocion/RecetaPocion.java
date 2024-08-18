@@ -1,14 +1,14 @@
 package es.cristichi.magiaborras.obj.pocion;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.bukkit.Material;
 
 public class RecetaPocion {
 	private Pocion resultado;
-	private ArrayList<Material> materiales;
+	private HashMap<Material, Integer> materiales;
 
-	public RecetaPocion(Pocion resultado, ArrayList<Material> materiales) {
+	public RecetaPocion(Pocion resultado, HashMap<Material, Integer> materiales) {
 		this.resultado = resultado;
 		this.materiales = materiales;
 	}
@@ -21,11 +21,11 @@ public class RecetaPocion {
 		this.resultado = resultado;
 	}
 
-	public ArrayList<Material> getMateriales() {
+	public HashMap<Material, Integer> getMateriales() {
 		return materiales;
 	}
 
-	public void setMateriales(ArrayList<Material> materiales) {
+	public void setMateriales(HashMap<Material, Integer> materiales) {
 		this.materiales = materiales;
 	}
 

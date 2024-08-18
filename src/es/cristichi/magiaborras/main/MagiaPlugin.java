@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -142,60 +143,42 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		recetas = new ArrayList<>(5);
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(1);
-			ingredientes.add(Material.APPLE);
+			HashMap<Material, Integer> ingredientes = new HashMap<Material, Integer>(1);
+			ingredientes.put(Material.APPLE, 1);
 			RecetaPocion receta = new RecetaPocion(Pocion.getInvisibilidad(), ingredientes);
 			recetas.add(receta);
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(4);
-			ingredientes.add(Material.WHEAT);
-			ingredientes.add(Material.SWEET_BERRIES);
-			ingredientes.add(Material.EGG);
-			ingredientes.add(Material.EGG);
+			HashMap<Material, Integer> ingredientes = new HashMap<Material, Integer>(4);
+			ingredientes.put(Material.WHEAT, 1);
+			ingredientes.put(Material.SWEET_BERRIES, 1);
+			ingredientes.put(Material.EGG, 2);
 			RecetaPocion receta = new RecetaPocion(Pocion.getCervezaDeMantequilla(), ingredientes);
 			recetas.add(receta);
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(4);
-			ingredientes.add(Material.FERMENTED_SPIDER_EYE);
-			ingredientes.add(Material.ROTTEN_FLESH);
-			ingredientes.add(Material.ROTTEN_FLESH);
-			ingredientes.add(Material.ROTTEN_FLESH);
+			HashMap<Material, Integer> ingredientes = new HashMap<Material, Integer>(4);
+			ingredientes.put(Material.FERMENTED_SPIDER_EYE, 1);
+			ingredientes.put(Material.ROTTEN_FLESH, 3);
 			RecetaPocion receta = new RecetaPocion(Pocion.getParalizadora(), ingredientes);
 			recetas.add(receta);
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(7);
-			ingredientes.add(Material.FEATHER);
-			ingredientes.add(Material.FEATHER);
-			ingredientes.add(Material.FEATHER);
-			ingredientes.add(Material.FEATHER);
-			ingredientes.add(Material.FEATHER);
-			ingredientes.add(Material.LEATHER_BOOTS);
-			ingredientes.add(Material.BLAZE_POWDER);
+			HashMap<Material, Integer> ingredientes = new HashMap<Material, Integer>(7);
+			ingredientes.put(Material.FEATHER, 5);
+			ingredientes.put(Material.LEATHER_BOOTS, 1);
+			ingredientes.put(Material.BLAZE_POWDER, 1);
 			RecetaPocion receta = new RecetaPocion(Pocion.getLevitadora(), ingredientes);
 			recetas.add(receta);
 		}
 
 		{
-			ArrayList<Material> ingredientes = new ArrayList<>(4);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.GOLD_INGOT);
-			ingredientes.add(Material.PUMPKIN_PIE);
+			HashMap<Material, Integer> ingredientes = new HashMap<Material, Integer>(4);
+			ingredientes.put(Material.GOLD_INGOT, 12);
+			ingredientes.put(Material.PUMPKIN_PIE, 1);
 			RecetaPocion receta = new RecetaPocion(Pocion.getFelixFelicis(), ingredientes);
 			recetas.add(receta);
 		}
@@ -382,19 +365,26 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		case "pociones":
 			String msg = header + "Pociones disponibles:";
 			// TODO hacer que los items repetidos salgan como x5 en vez de el item 5 veces
-			for (RecetaPocion r : recetas) {
-				msg += textColor + "\nPara hacer " + mainColor + r.getResultado().getNombre() + textColor
+			for (RecetaPocion receta : recetas) {
+				msg += textColor + "\nPara hacer " + mainColor + receta.getResultado().getNombre() + textColor
 						+ " necesitas:\n";
-				for (int i = 0; i < r.getMateriales().size(); i++) {
-					if (i != 0) {
-						if (i == r.getMateriales().size() - 1) {
+
+				int cont = 0;
+				int size = receta.getMateriales().size();
+				for (Map.Entry<Material, Integer> ingrediente : receta.getMateriales().entrySet()) {
+					if (cont != 0) {
+						if (cont == size - 1) {
 							msg += textColor + " y ";
 						} else {
 							msg += textColor + ", ";
 						}
 					}
-					msg += accentColor + r.getMateriales().get(i).name().toLowerCase().replace("_", " ");
+					cont++;
+
+					msg += accentColor + ingrediente.getKey().name().toLowerCase().replace("_", " ")
+							+ (ingrediente.getValue() > 1 ? " x" + ingrediente.getValue() : "");
 				}
+
 			}
 			sender.sendMessage(msg);
 			break;
@@ -482,6 +472,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			list.add("help");
 			list.add("uso");
 			list.add("hechizos");
+			list.add("pociones");
 			list.add("sinergia");
 			if (sender.hasPermission(PERM_CRAFT)) {
 				list.add("receta");
@@ -490,76 +481,6 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				list.add("recargarinfo");
 				list.add("cheat");
 				list.add("give");
-			}
-			break;
-		case 1:
-			args[0] = args[0].toLowerCase();
-			switch (args[0]) {
-			case "help":
-			case "uso":
-			case "cheat":
-			case "receta":
-				break;
-
-			default:
-				if ("help".contains(args[0]))
-					list.add("help");
-				if ("uso".contains(args[0]))
-					list.add("uso");
-				if ("hechizos".contains(args[0]))
-					list.add("hechizos");
-				if ("sinergia".contains(args[0]))
-					list.add("sinergia");
-				
-				if (sender.hasPermission(PERM_CRAFT)) {
-					if ("receta".contains(args[0]))
-						list.add("receta");
-				}
-				
-				
-				if (sender.hasPermission(PERM_ADMIN)) {
-					if ("recargarinfo".contains(args[0]))
-						list.add("recargarinfo");
-					if ("cheat".contains(args[0]))
-						list.add("cheat");
-					if ("give".contains(args[0]))
-						list.add("give");
-				}
-				break;
-			}
-			break;
-
-		case 2:
-			args[0] = args[0].toLowerCase();
-			switch (args[0]) {
-			case "setlimit":
-				break;
-			case "setvipmode":
-			case "setreplant":
-			case "setinvinciblereplant":
-			case "setaxeneeded":
-			case "setdamageaxe":
-			case "setbreakaxe":
-			case "setnethertrees":
-			case "setstartactivated":
-			case "setjoinmsg":
-			case "setignoreleaves":
-			case "setsneaking":
-			case "setcrouch":
-				list.add("true");
-				list.add("false");
-				break;
-			case "setsneakingprevention":
-			case "setcrouchprevention":
-				list.add("true");
-				list.add("inverted");
-				list.add("false");
-			case "setlanguage":
-			case "setlang":
-				// list.add("English");
-
-			default:
-				break;
 			}
 			break;
 		default:
