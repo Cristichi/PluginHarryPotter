@@ -45,6 +45,7 @@ import es.cristichi.magiaborras.obj.conjuro.conjuros.Imperio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Incendio;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.Morsmordre;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.PetrificusTotalus;
+import es.cristichi.magiaborras.obj.conjuro.conjuros.Sectumsempra;
 import es.cristichi.magiaborras.obj.conjuro.conjuros.WingardiumLeviosa;
 import es.cristichi.magiaborras.obj.flu.ChimeneaFlu;
 import es.cristichi.magiaborras.obj.flu.MenuRedFlu;
@@ -100,6 +101,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 			new Depulso(this);
 			new Expelliarmus(this);
 			new FiniteIncantatem(this);
+			new Sectumsempra(this);
 			new Imperio(this);
 			new Incendio(this);
 			new Morsmordre(this);
