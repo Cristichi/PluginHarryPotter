@@ -21,7 +21,7 @@ public class Diffindo extends Conjuro {
 
 	public Diffindo(Plugin plugin) {
 		super(plugin, "diffindo", "Diffindo", "El conjuro de daño básico. Hace pupa y ya.",
-				new MaterialChoice(Material.COBBLESTONE, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
+				new MaterialChoice(Material.REDSTONE_TORCH, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_STAIRS,
 						Material.COBBLESTONE_WALL),
 				new TiposLanzamiento(TipoLanzamiento.DISTANCIA_ENTIDAD),
 				new EfectoVisual[] { EfectoVisual.PARTICULAS, EfectoVisual.RAYITO }, ChatColor.RED + "", Color.RED, 20,
