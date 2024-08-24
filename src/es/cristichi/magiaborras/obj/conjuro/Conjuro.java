@@ -220,8 +220,7 @@ public abstract class Conjuro {
 						AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, mago, getPalabrasMagicas(nombre),
 								new HashSet<Player>(plugin.getServer().getOnlinePlayers()));
 						Bukkit.getPluginManager().callEvent(event);
-						plugin.getServer().broadcastMessage(
-								event.getFormat().replace("%1$s", nombre).replace("%2$s", getPalabrasMagicas(nombre)));
+						plugin.getServer().broadcastMessage(String.format(event.getFormat(), nombre, getPalabrasMagicas(nombre)));
 					}
 					mensajesPalabrasMagicas.put(mago.getUniqueId(), ticks);
 				}
