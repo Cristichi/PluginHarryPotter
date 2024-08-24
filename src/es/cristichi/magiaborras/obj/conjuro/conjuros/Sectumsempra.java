@@ -40,16 +40,23 @@ public class Sectumsempra extends Conjuro {
 			LivingEntity victimaViva = (LivingEntity) victima;
 			float potencia = varita.getPotencia(mago);
 			int delay = 10;
-			int ticks = (int) (5300 * potencia + 100);
-			int wait = 20;
+			int ticks = (int) (200 * potencia + 40);
+			int wait = 30;
 			final int repes = ticks / wait;
 			double damage = Math.max(1, victimaViva.getHealth() * potencia / repes);
+//			Bukkit.getLogger().info("Potencia: "+potencia);
+//			Bukkit.getLogger().info("Delay: "+delay);
+//			Bukkit.getLogger().info("Ticks: "+ticks);
+//			Bukkit.getLogger().info("Wait: "+wait);
+//			Bukkit.getLogger().info("Repes: "+repes);
+//			Bukkit.getLogger().info("Damage: "+damage);
 			victima.getLocation().getWorld().spawnParticle(Particle.CRIT, ((LivingEntity) victima).getEyeLocation(), 15,
 					0.1, 0.1, 0.1);
-			
+
 			Bukkit.getScheduler().runTaskTimer(plugin, new Consumer<BukkitTask>() {
 
 				int repe = 0;
+
 				@Override
 				public void accept(BukkitTask t) {
 					if (++repe > repes || victimaViva.isDead()) {
@@ -58,8 +65,8 @@ public class Sectumsempra extends Conjuro {
 						victimaViva.damage(damage, mago);
 						victimaViva.getLocation().getWorld().spawnParticle(Particle.SWEEP_ATTACK,
 								((LivingEntity) victima).getEyeLocation(), 15, 0.1, 0.1, 0.1);
-						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1,
-								0.01f);
+						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ITEM_SHIELD_BREAK, 0.4f,
+								10.01f);
 						if (victimaViva.getHealth() < 0) {
 							victimaViva.setHealth(0);
 						}
@@ -67,29 +74,6 @@ public class Sectumsempra extends Conjuro {
 				}
 			}, delay, wait);
 
-//			int idDamage = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-//				@Override
-//				public void run() {
-//					if (!victimaViva.isDead()) {
-//
-//						victimaViva.getLocation().getWorld().spawnParticle(Particle.SWEEP_ATTACK,
-//								((LivingEntity) victima).getEyeLocation(), 15, 0.1, 0.1, 0.1);
-//						victimaViva.getWorld().playSound(victimaViva.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1,
-//								0.01f);
-//						victimaViva.damage(damage, mago);
-//						if (victimaViva.getHealth() < 0) {
-//							victimaViva.setHealth(0);
-//						}
-//					}
-//				}
-//			}, delay, wait);
-//
-//			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-//				@Override
-//				public void run() {
-//					Bukkit.getScheduler().cancelTask(idDamage);
-//				}
-//			}, delay / 2 + ticks);
 			resetTiempoPalabras(mago);
 			return true;
 		}
