@@ -188,7 +188,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 		caldero = new Caldero(this, recetas);
 
 		help = new ArrayList<>();
-		help.add(new Ayuda("conjuros", "Muestra una lista de conjuros"));
+		help.add(new Ayuda("hechizos", "Muestra una lista de conjuros"));
 		help.add(new Ayuda("receta", "Te muestra el crafteo de la varita mágica"));
 		help.add(new Ayuda("uso", "Te explica cómo puedes usar tu varita"));
 		// help.add(new Ayuda("caldero", "Te explica cómo puedes usar el caldero para hacer pociones"));
@@ -259,7 +259,7 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 				sender.sendMessage(ayuda.toString());
 			}
 			break;
-		case "give":
+		case "obtener":
 			if (sender instanceof Player && sender.hasPermission(PERM_ADMIN)) {
 				Player p = (Player) sender;
 				// p.getInventory()
@@ -490,8 +490,8 @@ public class MagiaPlugin extends JavaPlugin implements Listener {
 					list.add("recargarinfo");
 				if ("cheat".startsWith(args[0]))
 					list.add("cheat");
-				if ("give".startsWith(args[0]))
-					list.add("give");
+				if ("obtener".startsWith(args[0]))
+					list.add("obtener");
 			}
 			break;
 		default:
